@@ -1,0 +1,117 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-binaries:
+    name: Build Desktop & CLI Binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Verify vet and tests
+        run: |
+          go vet ./...
+          go test ./...
+
+      - name: Generate native application icons & Windows PE resources
+        run: go run scripts/gen_resources.go
+
+      - name: Build cross-platform release binaries
+        run: make build-all
+
+      - name: Upload binary artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-binaries
+          path: dist/*
+
+  build-android-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Build Android JNI Shared Libraries
+        run: |
+          # Locate installed Android NDK
+          NDK_PATH=$(ls -d $ANDROID_HOME/ndk/* | sort -V | tail -n 1)
+          echo "Using Android NDK at: $NDK_PATH"
+          TOOLCHAIN="$NDK_PATH/toolchains/llvm/prebuilt/linux-x86_64/bin"
+
+          mkdir -p android/app/src/main/jniLibs/arm64-v8a
+
+          # Build arm64-v8a (API 26) with mandatory 16KB page alignment for Android 15/16
+          CC="$TOOLCHAIN/aarch64-linux-android26-clang" \
+          CGO_ENABLED=1 GOOS=android GOARCH=arm64 \
+          go build -buildmode=c-shared -ldflags="-s -w -extldflags=-Wl,-z,max-page-size=16384" -o android/app/src/main/jniLibs/arm64-v8a/libdirectcrate.so .
+
+      - name: Build Android APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          gradle assembleRelease --no-daemon --stacktrace
+          mkdir -p ../dist
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          cp "$APK_PATH" ../dist/directcrate-android.apk
+          unzip -l ../dist/directcrate-android.apk | grep "libdirectcrate.so"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: dist/directcrate-android.apk
+
+  publish:
+    name: Publish GitHub Release
+    needs: [build-binaries, build-android-apk]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Consolidate distribution files
+        run: |
+          mkdir -p dist
+          find artifacts/ -type f -exec cp {} dist/ \;
+          ls -la dist/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: dist/*

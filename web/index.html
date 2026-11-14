@@ -1,0 +1,4438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+	<title>DirectCrate</title>
+	<link rel="icon" type="image/png" sizes="256x256" href="/icon.png">
+	<link rel="shortcut icon" href="/favicon.ico">
+	<style>
+		:root {
+			--bg: #0B0D10;
+			--surface: #14181F;
+			--surface-hover: #1E242E;
+			--border: #232B36;
+			--border-focus: #3B4758;
+			--text: #F8FAFC;
+			--text-muted: #94A3B8;
+			--text-dim: #64748B;
+			--primary: #F8FAFC;
+			--primary-text: #0B0D10;
+			--accent: #10B981;
+			--accent-hover: #059669;
+			--danger: #EF4444;
+			--success: #10B981;
+			--sat: env(safe-area-inset-top, 0px);
+			--sab: env(safe-area-inset-bottom, 0px);
+			--sal: env(safe-area-inset-left, 0px);
+			--sar: env(safe-area-inset-right, 0px);
+		}
+		[data-theme="dark"] {
+			--bg: #0B0D10;
+			--surface: #14181F;
+			--surface-hover: #1E242E;
+			--border: #232B36;
+			--border-focus: #3B4758;
+			--text: #F8FAFC;
+			--text-muted: #94A3B8;
+			--text-dim: #64748B;
+			--primary: #F8FAFC;
+			--primary-text: #0B0D10;
+			--accent: #10B981;
+			--accent-hover: #059669;
+			--danger: #EF4444;
+			--success: #10B981;
+		}
+		[data-theme="light"] {
+			--bg: #F4F6F9;
+			--surface: #FFFFFF;
+			--surface-hover: #F1F5F9;
+			--border: #E2E8F0;
+			--border-focus: #94A3B8;
+			--text: #0F172A;
+			--text-muted: #475569;
+			--text-dim: #64748B;
+			--primary: #0F172A;
+			--primary-text: #F8FAFC;
+			--accent: #059669;
+			--accent-hover: #047857;
+			--danger: #DC2626;
+			--success: #16A34A;
+		}
+		@media (prefers-color-scheme: light) {
+			:root:not([data-theme="dark"]) {
+				--bg: #F4F6F9;
+				--surface: #FFFFFF;
+				--surface-hover: #F1F5F9;
+				--border: #E2E8F0;
+				--border-focus: #94A3B8;
+				--text: #0F172A;
+				--text-muted: #475569;
+				--text-dim: #64748B;
+				--primary: #0F172A;
+				--primary-text: #F8FAFC;
+				--accent: #059669;
+				--accent-hover: #047857;
+				--danger: #DC2626;
+				--success: #16A34A;
+			}
+		}
+		* { box-sizing: border-box; }
+		html, body {
+			max-width: 100vw;
+			overflow-x: hidden;
+		}
+		body {
+			margin: 0;
+			padding: calc(16px + var(--sat)) calc(16px + var(--sar)) calc(16px + var(--sab)) calc(16px + var(--sal));
+			font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+			background: var(--bg);
+			color: var(--text);
+			-webkit-font-smoothing: antialiased;
+		}
+		.shell {
+			width: 100%;
+			max-width: 100%;
+			min-height: calc(100vh - 32px);
+			margin: 0 auto;
+			background: transparent;
+			display: flex;
+			flex-direction: column;
+			transition: border-color 0.2s;
+		}
+		.shell.drag-over {
+			border-color: var(--accent);
+			box-shadow: inset 0 0 0 2px var(--accent);
+		}
+		.bento-card {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 18px;
+			margin-bottom: 16px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+			transition: border-color 0.15s ease;
+		}
+		.bento-card:last-child {
+			margin-bottom: 0;
+		}
+		.bento-card-compact {
+			padding: 12px 14px;
+			margin-bottom: 12px;
+		}
+		.bento-card-title {
+			font-size: 0.78rem;
+			font-weight: 600;
+			color: var(--text-muted);
+			text-transform: uppercase;
+			letter-spacing: 0.04em;
+			margin-bottom: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.hero-progress-top {
+			display: flex;
+			align-items: flex-end;
+			justify-content: space-between;
+			margin: 12px 0 8px 0;
+			gap: 12px;
+		}
+		.hero-percent-readout {
+			font-size: 2.25rem;
+			font-weight: 700;
+			color: var(--text);
+			font-variant-numeric: tabular-nums;
+			line-height: 1;
+			letter-spacing: -0.03em;
+		}
+		.hero-live-stats {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-end;
+			gap: 2px;
+			font-variant-numeric: tabular-nums;
+		}
+		.hero-speed-val {
+			font-size: 1.15rem;
+			font-weight: 600;
+			color: var(--accent);
+		}
+		.hero-eta-val {
+			font-size: 0.78rem;
+			color: var(--text-muted);
+		}
+		.stream-health-pill {
+			margin-top: 10px;
+			font-size: 0.74rem;
+			color: var(--text-muted);
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 4px 10px;
+			background: var(--bg);
+			border: 1px solid var(--border);
+			border-radius: 999px;
+		}
+		.workspace {
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 20px;
+			flex: 1;
+		}
+		header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding-bottom: 16px;
+			border-bottom: 1px solid var(--border);
+			margin-bottom: 16px;
+		}
+		.brand {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+		.brand-icon {
+			flex-shrink: 0;
+		}
+		.brand h1 {
+			margin: 0;
+			font-size: 1.15rem;
+			font-weight: 600;
+			letter-spacing: -0.02em;
+			color: var(--text);
+		}
+		.brand span {
+			font-size: 0.76rem;
+			color: var(--text-dim);
+		}
+		.nav-group {
+			display: flex;
+			gap: 8px;
+		}
+		.icon-btn {
+			background: transparent;
+			border: 1px solid var(--border);
+			color: var(--text-muted);
+			border-radius: 6px;
+			padding: 6px 10px;
+			font-size: 0.8rem;
+			font-weight: 500;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			transition: border-color 0.15s, color 0.15s, background 0.15s;
+		}
+		.icon-btn:hover {
+			border-color: var(--border-focus);
+			color: var(--text);
+			background: var(--surface-hover);
+		}
+		.field {
+			margin-bottom: 14px;
+		}
+		.field label {
+			display: flex;
+			justify-content: space-between;
+			font-size: 0.78rem;
+			font-weight: 500;
+			color: var(--text-muted);
+			margin-bottom: 6px;
+		}
+		.input-row {
+			display: flex;
+			gap: 6px;
+			align-items: stretch;
+		}
+		input[type="text"], input[type="password"], select, textarea {
+			width: 100%;
+			background: var(--bg);
+			border: 1px solid var(--border);
+			color: var(--text);
+			border-radius: 6px;
+			padding: 10px 12px;
+			font-size: 0.9rem;
+			font-family: inherit;
+			outline: none;
+			transition: border-color 0.15s;
+		}
+		textarea {
+			resize: vertical;
+			min-height: 42px;
+			line-height: 1.4;
+		}
+		input[type="text"]:focus, input[type="password"]:focus, select:focus, textarea:focus {
+			border-color: var(--border-focus);
+		}
+		.btn-sec {
+			background: var(--bg);
+			border: 1px solid var(--border);
+			color: var(--text);
+			border-radius: 6px;
+			padding: 0 12px;
+			font-size: 0.82rem;
+			font-weight: 500;
+			cursor: pointer;
+			white-space: nowrap;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			transition: background 0.15s, border-color 0.15s;
+		}
+		.btn-sec:hover {
+			background: var(--surface-hover);
+			border-color: var(--border-focus);
+		}
+		.btn-sec:disabled {
+			opacity: 0.4;
+			cursor: not-allowed;
+		}
+		/* Custom theme-matched dropdowns */
+		.custom-select-wrapper {
+			position: relative;
+			display: block;
+			width: 100%;
+			user-select: none;
+		}
+		.custom-select-wrapper.inline-select {
+			display: inline-block;
+			width: auto;
+		}
+		.custom-select-trigger {
+			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			background: var(--bg);
+			border: 1px solid var(--border);
+			color: var(--text);
+			border-radius: 6px;
+			padding: 9px 12px;
+			font-size: 0.88rem;
+			font-family: inherit;
+			cursor: pointer;
+			text-align: left;
+			transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+		}
+		.custom-select-wrapper.inline-select .custom-select-trigger {
+			padding: 3px 8px;
+			font-size: 0.75rem;
+			border-radius: 5px;
+			background: var(--surface);
+		}
+		.custom-select-wrapper.compact-select .custom-select-trigger {
+			padding: 3px 8px;
+			font-size: 0.74rem;
+			border-radius: 4px;
+			background: var(--surface);
+		}
+		.custom-select-trigger:hover {
+			border-color: var(--border-focus);
+			background: var(--surface-hover);
+		}
+		.custom-select-wrapper.open .custom-select-trigger {
+			border-color: var(--accent);
+			box-shadow: 0 0 0 1px var(--accent);
+		}
+		.custom-select-label {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			flex: 1;
+		}
+		.custom-select-arrow {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			color: var(--text-muted);
+			transition: transform 0.2s ease;
+			flex-shrink: 0;
+		}
+		.custom-select-wrapper.open .custom-select-arrow {
+			transform: rotate(180deg);
+		}
+		.custom-select-menu {
+			display: none;
+			position: absolute;
+			top: calc(100% + 4px);
+			left: 0;
+			right: 0;
+			background: var(--surface) !important;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+			z-index: 1000 !important;
+			max-height: 220px;
+			overflow-y: auto;
+			padding: 4px;
+		}
+		.dialog .custom-select-menu {
+			z-index: 1000 !important;
+			background: var(--surface) !important;
+		}
+		.custom-select-wrapper.inline-select .custom-select-menu {
+			min-width: 140px;
+			left: auto;
+			right: 0;
+		}
+		.custom-select-wrapper.open .custom-select-menu {
+			display: block;
+		}
+		.custom-select-option {
+			padding: 8px 10px;
+			font-size: 0.84rem;
+			color: var(--text);
+			border-radius: 4px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			transition: background 0.12s, color 0.12s;
+		}
+		.custom-select-wrapper.inline-select .custom-select-option,
+		.custom-select-wrapper.compact-select .custom-select-option {
+			padding: 5px 8px;
+			font-size: 0.78rem;
+		}
+		.custom-select-option:hover {
+			background: var(--surface-hover);
+		}
+		.custom-select-option.selected {
+			color: var(--accent);
+			font-weight: 600;
+			background: rgba(16, 185, 129, 0.12);
+		}
+		.inspect-panel {
+			display: none;
+			background: var(--bg);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 12px;
+			margin-bottom: 14px;
+			font-size: 0.82rem;
+		}
+		.inspect-panel.active { display: block; }
+		.inspect-top {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 8px;
+			font-weight: 600;
+		}
+		.inspect-meta {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 6px;
+			color: var(--text-muted);
+			font-variant-numeric: tabular-nums;
+		}
+		.inspect-meta b { color: var(--text); font-weight: 500; }
+		.inspect-note {
+			margin-top: 8px;
+			font-size: 0.76rem;
+			color: var(--text-dim);
+		}
+		.file-tree-box {
+			display: none;
+			margin-top: 10px;
+			padding-top: 10px;
+			border-top: 1px solid var(--border);
+		}
+		.file-tree-box.active { display: block; }
+		.file-tree-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 6px;
+			font-size: 0.75rem;
+			color: var(--text-muted);
+		}
+		.file-tree-list {
+			max-height: 150px;
+			overflow-y: auto;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 6px;
+			background: var(--surface);
+			scrollbar-width: thin;
+			scrollbar-color: var(--border-focus) transparent;
+		}
+		.file-tree-list::-webkit-scrollbar { width: 5px; }
+		.file-tree-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+		.file-tree-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			padding: 4px 6px;
+			font-size: 0.76rem;
+			border-radius: 4px;
+			cursor: pointer;
+		}
+		.file-tree-row:hover { background: var(--surface-hover); }
+		.file-tree-name {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			color: var(--text);
+		}
+		.file-tree-sz {
+			color: var(--text-dim);
+			white-space: nowrap;
+			font-variant-numeric: tabular-nums;
+		}
+		.actions {
+			display: flex;
+			gap: 8px;
+			margin-top: 16px;
+		}
+		.btn-primary {
+			flex: 2;
+			background: var(--primary);
+			color: var(--primary-text);
+			border: none;
+			border-radius: 6px;
+			padding: 11px 16px;
+			font-size: 0.9rem;
+			font-weight: 600;
+			cursor: pointer;
+			transition: opacity 0.15s;
+		}
+		.btn-primary:hover { opacity: 0.9; }
+		.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+		.btn-abort {
+			flex: 1;
+			background: transparent;
+			color: var(--danger);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 11px 16px;
+			font-size: 0.9rem;
+			font-weight: 500;
+			cursor: pointer;
+			transition: background 0.15s, border-color 0.15s;
+		}
+		.btn-abort:hover:not(:disabled) {
+			background: rgba(239, 68, 68, 0.08);
+			border-color: var(--danger);
+		}
+		.btn-abort:disabled { opacity: 0.3; cursor: not-allowed; }
+		.telemetry {
+			margin-top: 20px;
+			padding-top: 16px;
+			border-top: 1px solid var(--border);
+		}
+		.telemetry-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			margin-bottom: 10px;
+		}
+		.telemetry-title {
+			font-size: 0.75rem;
+			font-weight: 600;
+			color: var(--text-muted);
+			text-transform: uppercase;
+			letter-spacing: 0.04em;
+		}
+		.speed-cap-wrap {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 0.74rem;
+			color: var(--text-dim);
+		}
+		.speed-cap-select {
+			width: auto;
+			padding: 3px 8px;
+			font-size: 0.74rem;
+			border-radius: 5px;
+		}
+		.thermal-quick-banner {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			background: rgba(245, 158, 11, 0.12);
+			border: 1px solid rgba(245, 158, 11, 0.35);
+			border-radius: 6px;
+			padding: 6px 10px;
+			margin-bottom: 10px;
+			font-size: 0.76rem;
+			color: #fef3c7;
+		}
+		[data-theme="light"] .thermal-quick-banner,
+		:root:not([data-theme="dark"]) .thermal-quick-banner {
+			background: #FEF3C7;
+			border: 1px solid #F59E0B;
+			color: #78350F;
+		}
+		.thermal-quick-msg {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			flex-wrap: wrap;
+			line-height: 1.4;
+		}
+		.btn-thermal-action {
+			background: rgba(245, 158, 11, 0.22);
+			border: 1px solid rgba(245, 158, 11, 0.5);
+			color: #fbbf24;
+			border-radius: 4px;
+			padding: 2px 8px;
+			font-size: 0.72rem;
+			font-weight: 600;
+			cursor: pointer;
+			white-space: nowrap;
+			transition: all 0.15s ease;
+		}
+		[data-theme="light"] .btn-thermal-action,
+		:root:not([data-theme="dark"]) .btn-thermal-action {
+			background: #FDE68A;
+			border-color: #D97706;
+			color: #78350F;
+		}
+		.btn-thermal-action:hover {
+			background: rgba(245, 158, 11, 0.35);
+			border-color: #fbbf24;
+			color: #ffffff;
+		}
+		[data-theme="light"] .btn-thermal-action:hover,
+		:root:not([data-theme="dark"]) .btn-thermal-action:hover {
+			background: #FCD34D;
+			border-color: #B45309;
+			color: #78350F;
+		}
+		.thermal-banner-close {
+			background: transparent;
+			border: none;
+			color: rgba(245, 158, 11, 0.7);
+			font-size: 0.85rem;
+			cursor: pointer;
+			padding: 2px 4px;
+			line-height: 1;
+			border-radius: 3px;
+		}
+		[data-theme="light"] .thermal-banner-close,
+		:root:not([data-theme="dark"]) .thermal-banner-close {
+			color: #78350F;
+		}
+		.thermal-banner-close:hover {
+			color: #fbbf24;
+		}
+		[data-theme="light"] .thermal-banner-close:hover,
+		:root:not([data-theme="dark"]) .thermal-banner-close:hover {
+			color: #B45309;
+		}
+		.queue-panel {
+			display: none;
+			margin-top: 14px;
+			background: var(--bg);
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			padding: 10px 12px;
+		}
+		.queue-panel.active { display: block; }
+		.queue-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 0.76rem;
+			font-weight: 600;
+			color: var(--text-muted);
+			margin-bottom: 8px;
+		}
+		.queue-list {
+			display: flex;
+			flex-direction: column;
+			gap: 6px;
+			max-height: 150px;
+			overflow-y: auto;
+		}
+		.queue-item {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 8px;
+			padding: 6px 8px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 5px;
+			font-size: 0.78rem;
+		}
+		.queue-meta {
+			min-width: 0;
+			flex: 1;
+		}
+		.queue-name {
+			font-weight: 500;
+			color: var(--text);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.queue-dest {
+			font-size: 0.72rem;
+			color: var(--text-dim);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.queue-rm {
+			background: none;
+			border: none;
+			color: var(--text-dim);
+			cursor: pointer;
+			font-size: 0.85rem;
+			padding: 2px 6px;
+			border-radius: 4px;
+		}
+		.queue-rm:hover {
+			color: var(--danger);
+			background: rgba(239, 68, 68, 0.08);
+		}
+		.progress-track {
+			width: 100%;
+			height: 6px;
+			background: var(--bg);
+			border-radius: 99px;
+			overflow: hidden;
+			border: 1px solid var(--border);
+		}
+		.progress-fill {
+			height: 100%;
+			width: 0%;
+			background: var(--text);
+			transition: width 0.2s ease;
+		}
+		.metrics {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 10px;
+			margin-top: 14px;
+			font-variant-numeric: tabular-nums;
+		}
+		.metric {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 10px;
+			padding: 10px 12px;
+			min-width: 0;
+			overflow: hidden;
+		}
+		.metric-k {
+			font-size: 0.7rem;
+			color: var(--text-dim);
+			text-transform: uppercase;
+			letter-spacing: 0.04em;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.metric-v {
+			font-size: 0.95rem;
+			font-weight: 600;
+			color: var(--text);
+			margin-top: 3px;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.temp-normal { color: #10B981; }
+		.temp-warm { color: #F59E0B; }
+		.temp-hot { color: #EF4444; }
+		.sparkline-card {
+			margin-top: 12px;
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			padding: 12px 14px;
+		}
+		.sparkline-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 0.72rem;
+			color: var(--text-dim);
+			margin-bottom: 6px;
+			font-variant-numeric: tabular-nums;
+		}
+		#speedCanvas {
+			width: 100%;
+			height: 44px;
+			display: block;
+		}
+		.status-line {
+			margin-top: 10px;
+			font-size: 0.8rem;
+			color: var(--text-muted);
+			display: flex;
+			justify-content: space-between;
+			gap: 12px;
+		}
+		.status-text {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		.current-file, #curFile {
+			margin-top: 4px;
+			font-size: 0.74rem;
+			color: var(--text-dim);
+			font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			display: block;
+		}
+		.complete-panel {
+			display: none;
+			margin-top: 16px;
+			background: var(--bg);
+			border: 1px solid var(--border-focus);
+			border-radius: 8px;
+			padding: 14px;
+		}
+		.complete-panel.active { display: block; }
+		.complete-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 0.88rem;
+			font-weight: 600;
+			color: var(--success);
+			margin-bottom: 10px;
+		}
+		.complete-stats {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 6px;
+			font-size: 0.8rem;
+			color: var(--text-muted);
+			font-variant-numeric: tabular-nums;
+		}
+		.complete-stats b { color: var(--text); font-weight: 500; }
+		.complete-path {
+			margin-top: 8px;
+			font-size: 0.78rem;
+			color: var(--text-muted);
+			word-break: break-all;
+		}
+		.exe-selector {
+			margin-top: 10px;
+			padding-top: 10px;
+			border-top: 1px solid var(--border);
+		}
+		.complete-actions {
+			display: flex;
+			gap: 8px;
+			margin-top: 12px;
+		}
+		footer {
+			margin-top: auto;
+			padding-top: 14px;
+			border-top: 1px solid var(--border);
+			text-align: center;
+			font-size: 0.75rem;
+			color: var(--text-dim);
+		}
+		footer a {
+			color: var(--text-muted);
+			text-decoration: none;
+			transition: color 0.15s;
+		}
+		footer a:hover { color: var(--text); }
+
+		.overlay {
+			display: none;
+			position: fixed;
+			inset: 0;
+			background: rgba(0, 0, 0, 0.75);
+			z-index: 100;
+			align-items: center;
+			justify-content: center;
+			padding: 16px;
+		}
+		.overlay.open { display: flex; }
+		.dialog {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			border-radius: 12px;
+			width: 100%;
+			max-width: 560px;
+			max-height: 86vh;
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+		}
+		.dialog-head {
+			padding: 14px 16px;
+			border-bottom: 1px solid var(--border);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			font-size: 0.92rem;
+			font-weight: 600;
+		}
+		.close-x {
+			background: none;
+			border: none;
+			color: var(--text-dim);
+			cursor: pointer;
+			font-size: 1.1rem;
+			min-width: 36px;
+			min-height: 36px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 6px;
+			padding: 0;
+			transition: background 0.15s, color 0.15s;
+		}
+		.close-x:hover, .close-x:focus-visible {
+			color: var(--text);
+			background: var(--surface-hover);
+			outline: none;
+		}
+		.tabs {
+			display: flex;
+			border-bottom: 1px solid var(--border);
+			padding: 0 16px;
+			gap: 16px;
+		}
+		.tab-btn {
+			background: none;
+			border: none;
+			border-bottom: 2px solid transparent;
+			color: var(--text-dim);
+			padding: 10px 0;
+			font-size: 0.82rem;
+			font-weight: 500;
+			cursor: pointer;
+		}
+		.tab-btn.active {
+			color: var(--text);
+			border-bottom-color: var(--text);
+		}
+		.dialog-body {
+			padding: 18px 20px;
+			overflow-y: auto;
+			flex: 1;
+			font-size: 0.84rem;
+			overscroll-behavior: contain;
+			scrollbar-width: thin;
+			scrollbar-color: var(--border-focus) transparent;
+		}
+		.dialog-body::-webkit-scrollbar { width: 6px; height: 6px; }
+		.dialog-body::-webkit-scrollbar-track { background: transparent; margin: 6px 0; }
+		.dialog-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+		.dialog-body::-webkit-scrollbar-thumb:hover { background: var(--border-focus); }
+		.tab-pane { display: none; }
+		.tab-pane.active { display: block; }
+		.pref-row {
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			margin-bottom: 14px;
+			cursor: pointer;
+		}
+		.pref-row input[type="checkbox"] {
+			margin-top: 2px;
+			accent-color: var(--text);
+		}
+		.pref-title {
+			font-weight: 500;
+			color: var(--text);
+			font-size: 0.84rem;
+		}
+		.pref-desc {
+			font-size: 0.75rem;
+			color: var(--text-dim);
+			margin-top: 2px;
+		}
+		.faq-item {
+			margin-bottom: 14px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid var(--border);
+		}
+		.faq-item:last-child { border-bottom: none; margin-bottom: 0; }
+		.faq-q { font-weight: 600; color: var(--text); margin-bottom: 4px; }
+		.faq-a { color: var(--text-muted); line-height: 1.45; font-size: 0.8rem; }
+		.picker-shortcuts {
+			display: none;
+			gap: 6px;
+			overflow-x: auto;
+			padding: 8px 16px;
+			background: var(--surface);
+			border-bottom: 1px solid var(--border);
+			scrollbar-width: none;
+			-webkit-overflow-scrolling: touch;
+		}
+		.picker-shortcuts::-webkit-scrollbar { display: none; }
+		.shortcut-pill {
+			background: var(--bg);
+			border: 1px solid var(--border);
+			color: var(--text-muted);
+			border-radius: 999px;
+			padding: 5px 11px;
+			font-size: 0.74rem;
+			font-weight: 500;
+			white-space: nowrap;
+			cursor: pointer;
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			transition: background 0.15s, border-color 0.15s, color 0.15s;
+			flex-shrink: 0;
+			user-select: none;
+		}
+		.shortcut-pill:hover, .shortcut-pill.active {
+			background: var(--surface-hover);
+			border-color: var(--border-focus);
+			color: var(--text);
+		}
+		.dir-row {
+			padding: 10px 12px;
+			border-radius: 6px;
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			color: var(--text);
+			font-size: 0.86rem;
+			transition: background 0.12s, color 0.12s;
+			user-select: none;
+			-webkit-tap-highlight-color: transparent;
+		}
+		.dir-row:hover, .dir-row:active {
+			background: var(--surface-hover);
+			color: var(--accent);
+		}
+		.hist-card {
+			padding: 10px 12px;
+			border: 1px solid var(--border);
+			border-radius: 6px;
+			background: var(--bg);
+			margin-bottom: 8px;
+		}
+		.dialog-foot {
+			padding: 12px 16px;
+			border-top: 1px solid var(--border);
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 8px;
+			box-sizing: border-box;
+			width: 100%;
+			flex-shrink: 0;
+		}
+
+		/* Multi-button modal footers (e.g. Diagnostics & Logs with 4 buttons) */
+		.dialog-foot-grid {
+			display: flex;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 8px;
+			flex-wrap: wrap;
+			padding: 12px 16px;
+			border-top: 1px solid var(--border);
+			box-sizing: border-box;
+			width: 100%;
+			flex-shrink: 0;
+		}
+		.dialog-foot-grid .btn-clear-logs {
+			margin-right: auto;
+		}
+
+		/* Picker modal footer */
+		.picker-dialog-foot {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 8px;
+			padding: 12px 16px;
+			border-top: 1px solid var(--border);
+			box-sizing: border-box;
+			width: 100%;
+			flex-shrink: 0;
+		}
+		.picker-dialog-foot .btn-picker-new {
+			margin-right: auto;
+		}
+
+		/* Non-blocking Dark UI Toasts */
+		.toast-container {
+			position: fixed;
+			bottom: 24px;
+			right: 24px;
+			z-index: 200;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			pointer-events: none;
+			max-width: 90vw;
+		}
+		.toast {
+			background: var(--surface);
+			border: 1px solid var(--border);
+			color: var(--text);
+			padding: 12px 18px;
+			border-radius: 8px;
+			font-size: 0.84rem;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			pointer-events: auto;
+			animation: toastIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+			transition: opacity 0.2s ease, transform 0.2s ease;
+			word-break: break-word;
+		}
+		.toast.toast-success {
+			border-color: rgba(34, 197, 94, 0.4);
+		}
+		.toast.toast-error {
+			border-color: rgba(239, 68, 68, 0.4);
+		}
+		.toast.toast-info {
+			border-color: var(--border);
+		}
+		@keyframes toastIn {
+			from {
+				opacity: 0;
+				transform: translateY(12px) scale(0.96);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+		.toast.toast-out {
+			opacity: 0;
+			transform: translateY(8px) scale(0.96);
+		}
+
+		/* Desktop 2-Column Studio Grid (>= 860px) */
+		@media (min-width: 860px) {
+			body {
+				padding: calc(20px + var(--sat)) calc(24px + var(--sar)) calc(20px + var(--sab)) calc(24px + var(--sal));
+			}
+			.shell {
+				max-width: 1240px;
+				margin: 0 auto;
+				background: transparent;
+				border: none;
+				border-radius: 0;
+				padding: 0;
+			}
+			header {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 12px;
+				padding: 14px 20px;
+				margin-bottom: 20px;
+			}
+			.workspace {
+				display: grid;
+				grid-template-columns: 1.15fr 1fr;
+				gap: 24px;
+				align-items: start;
+			}
+			.telemetry {
+				margin-top: 0 !important;
+				padding-top: 0 !important;
+				border-top: none !important;
+			}
+			.actions {
+				position: static;
+				display: flex;
+				gap: 10px;
+				margin-top: 16px;
+				padding: 0;
+				background: transparent;
+				border: none;
+				box-shadow: none;
+			}
+			.dialog {
+				max-width: 640px;
+				border-radius: 14px;
+				box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5);
+			}
+			.sheet-handle {
+				display: none;
+			}
+
+			/* Uniform Primary Modals on Desktop */
+			#settingsModal .modal, #settingsModal .dialog,
+			#historyModal .modal, #historyModal .dialog,
+			#logsModal .modal, #logsModal .dialog,
+			#pickerModal .modal, #pickerModal .dialog {
+				width: 640px !important;
+				max-width: 92vw !important;
+				height: min(72vh, 760px) !important;
+				min-height: min(72vh, 760px) !important;
+				max-height: 760px !important;
+				display: flex !important;
+				flex-direction: column !important;
+				overflow: hidden !important;
+				box-sizing: border-box !important;
+			}
+		}
+
+		/* Mobile Native App Layout (< 860px) */
+		@media (max-width: 859px) {
+			body {
+				padding: calc(12px + var(--sat)) calc(12px + var(--sar)) calc(86px + var(--sab)) calc(12px + var(--sal));
+			}
+			.shell {
+				width: 100%;
+				max-width: 100%;
+				padding: 0;
+				background: transparent;
+				border: none;
+			}
+			header {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 12px;
+				padding: 12px 16px;
+				margin-bottom: 16px;
+			}
+			.workspace {
+				display: flex;
+				flex-direction: column;
+				gap: 16px;
+			}
+			.telemetry {
+				margin-top: 0;
+				padding-top: 0;
+				border-top: none;
+			}
+			.actions {
+				position: fixed;
+				bottom: 0;
+				left: 0;
+				right: 0;
+				background: var(--surface);
+				border-top: 1px solid var(--border);
+				padding: 12px 16px calc(12px + var(--sab)) 16px;
+				margin: 0;
+				z-index: 90;
+				box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.4);
+				display: flex;
+				gap: 10px;
+			}
+			.overlay {
+				align-items: flex-end;
+				padding: 0;
+			}
+			.dialog {
+				max-width: 100% !important;
+				width: 100% !important;
+				border-bottom-left-radius: 0 !important;
+				border-bottom-right-radius: 0 !important;
+				border-top-left-radius: 20px !important;
+				border-top-right-radius: 20px !important;
+				max-height: 85vh;
+				max-height: 85dvh;
+				margin: 0;
+				animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+			}
+			.sheet-handle {
+				display: block;
+				width: 40px;
+				height: 4px;
+				background: var(--border-focus);
+				border-radius: 99px;
+				margin: 10px auto 4px auto;
+				flex-shrink: 0;
+			}
+
+			/* Uniform Primary Bottom Sheets on Mobile */
+			#settingsModal .modal, #settingsModal .dialog,
+			#historyModal .modal, #historyModal .dialog,
+			#logsModal .modal, #logsModal .dialog,
+			#pickerModal .modal, #pickerModal .dialog {
+				height: 78vh !important;
+				height: 78dvh !important;
+				min-height: 78vh !important;
+				min-height: 78dvh !important;
+				max-height: 78vh !important;
+				max-height: 78dvh !important;
+				display: flex !important;
+				flex-direction: column !important;
+				overflow: hidden !important;
+				box-sizing: border-box !important;
+			}
+
+			/* 2x2 Grid for 4-button modal footers (Diagnostics & Logs) */
+			.dialog-foot-grid {
+				display: grid !important;
+				grid-template-columns: 1fr 1fr !important;
+				gap: 10px !important;
+				padding: 12px 16px !important;
+				width: 100% !important;
+				box-sizing: border-box !important;
+			}
+			.dialog-foot-grid button,
+			.dialog-foot-grid .btn-sec,
+			.dialog-foot-grid .btn-primary {
+				width: 100% !important;
+				min-width: 0 !important;
+				white-space: nowrap !important;
+				overflow: hidden !important;
+				text-overflow: ellipsis !important;
+				box-sizing: border-box !important;
+				margin: 0 !important;
+				padding: 8px 12px !important;
+				font-size: 0.84rem !important;
+				display: inline-flex !important;
+				align-items: center !important;
+				justify-content: center !important;
+				text-align: center !important;
+			}
+
+			/* Grid for Directory Picker footer */
+			.picker-dialog-foot {
+				display: grid !important;
+				grid-template-columns: 1fr 1fr !important;
+				gap: 10px !important;
+				padding: 12px 16px !important;
+				width: 100% !important;
+				box-sizing: border-box !important;
+			}
+			.picker-dialog-foot button,
+			.picker-dialog-foot .btn-sec,
+			.picker-dialog-foot .btn-primary {
+				width: 100% !important;
+				min-width: 0 !important;
+				white-space: nowrap !important;
+				overflow: hidden !important;
+				text-overflow: ellipsis !important;
+				box-sizing: border-box !important;
+				margin: 0 !important;
+				padding: 8px 12px !important;
+				font-size: 0.84rem !important;
+				display: inline-flex !important;
+				align-items: center !important;
+				justify-content: center !important;
+				text-align: center !important;
+			}
+			.picker-dialog-foot .btn-picker-select {
+				grid-column: span 2 !important;
+			}
+
+			/* 2-button standard footers (Settings, History) */
+			.dialog-foot:not(.dialog-foot-grid):not(.picker-dialog-foot) {
+				display: flex !important;
+				justify-content: space-between !important;
+				align-items: center !important;
+				gap: 10px !important;
+				padding: 12px 16px !important;
+				width: 100% !important;
+				box-sizing: border-box !important;
+				flex-shrink: 0 !important;
+			}
+			.dialog-foot:not(.dialog-foot-grid):not(.picker-dialog-foot) > button {
+				flex: 1 1 0 !important;
+				min-width: 0 !important;
+				white-space: nowrap !important;
+				overflow: hidden !important;
+				text-overflow: ellipsis !important;
+				box-sizing: border-box !important;
+				margin: 0 !important;
+				padding: 8px 12px !important;
+				font-size: 0.84rem !important;
+				display: inline-flex !important;
+				align-items: center !important;
+				justify-content: center !important;
+				text-align: center !important;
+			}
+		}
+		@keyframes slideUpSheet {
+			from { transform: translateY(100%); }
+			to { transform: translateY(0); }
+		}
+
+		/* Mobile Portrait & Small Screen Responsiveness */
+		@media (max-width: 480px) {
+			body {
+				overflow-x: hidden;
+			}
+			header {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 12px;
+			}
+			.nav-group {
+				width: 100%;
+				justify-content: flex-start;
+				flex-wrap: wrap;
+				gap: 6px;
+			}
+			.nav-group .icon-btn {
+				flex: 1 1 auto;
+				justify-content: center;
+				min-height: 44px;
+				font-size: 0.85rem;
+			}
+			input, textarea, select {
+				font-size: 16px !important; /* Prevents auto-zoom in mobile WebViews */
+			}
+			.input-row {
+				flex-wrap: wrap;
+				gap: 8px;
+			}
+			.input-row input {
+				min-height: 44px;
+				width: 100%;
+			}
+			.input-row .btn-sec {
+				min-height: 44px;
+				flex: 1;
+			}
+			.btn-row {
+				flex-direction: column;
+				gap: 10px;
+			}
+			.btn-row button {
+				min-height: 44px;
+				font-size: 0.88rem;
+				width: 100%;
+			}
+		}
+
+		/* Mobile Landscape & Short Viewport Optimization */
+		@media (max-height: 520px) {
+			.dialog {
+				max-height: 96vh;
+				max-height: 96dvh;
+			}
+			.dialog-head {
+				padding: 8px 12px;
+			}
+			.dialog-body {
+				padding: 10px 14px;
+			}
+			.dialog-foot {
+				padding: 8px 12px;
+			}
+		}
+	</style>
+	<script>
+		// Apply initial theme immediately to eliminate color flashing during load
+		(function() {
+			try {
+				var theme = localStorage.getItem('directcrate_theme');
+				if (!theme) {
+					var raw = localStorage.getItem('directcrate_prefs_v1');
+					if (raw) {
+						var p = JSON.parse(raw);
+						if (p && p.theme) theme = p.theme;
+					}
+				}
+				if (theme === 'dark' || theme === 'light') {
+					document.documentElement.setAttribute('data-theme', theme);
+				} else {
+					document.documentElement.removeAttribute('data-theme');
+				}
+				var isDark = theme === 'dark' || (theme !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+				if (window.AndroidTheme && typeof window.AndroidTheme.onThemeChanged === 'function') {
+					window.AndroidTheme.onThemeChanged(Boolean(isDark));
+				}
+			} catch (e) {}
+		})();
+	</script>
+</head>
+<body>
+	<div class="shell" id="appShell">
+		<header>
+			<div class="brand">
+				<svg class="brand-icon" width="28" height="28" viewBox="0 0 108 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<rect width="108" height="108" rx="24" fill="#09090B"/>
+					<path d="M54 28 L76 40.5 L76 65.5 L54 78 L32 65.5 L32 40.5 Z" stroke="#FAFAFA" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+					<path d="M32 40.5 L54 53 L76 40.5 M54 53 L54 78" stroke="#FAFAFA" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+					<path d="M54 35 L54 45 M49 41 L54 46 L59 41" stroke="#10B981" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+				<div style="display: flex; flex-direction: column;">
+					<h1>DirectCrate</h1>
+					<span>Direct-to-disk streamer</span>
+				</div>
+			</div>
+			<div class="nav-group">
+				<button class="icon-btn" type="button" id="historyBtn" onclick="openHistory()">History</button>
+				<button class="icon-btn" type="button" id="logsBtn" onclick="openLogsModal()">Logs</button>
+				<button class="icon-btn" type="button" id="settingsBtn" onclick="openSettings()">Settings</button>
+			</div>
+		</header>
+
+		<div id="updateBanner" style="display: none; align-items: center; justify-content: space-between; gap: 8px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 8px; padding: 8px 12px; margin-bottom: 14px; font-size: 0.8rem; color: var(--text);">
+			<div style="display: flex; align-items: center; gap: 8px;">
+				<span style="color: var(--accent); font-weight: 600;">Update Available:</span>
+				<span id="updateVersionTag">v1.0.1</span>
+			</div>
+			<div style="display: flex; gap: 8px; align-items: center;">
+				<button type="button" class="btn-sec" style="padding: 3px 10px; font-size: 0.76rem; border-color: var(--accent); color: var(--accent);" onclick="openReleasePage()">Update</button>
+				<button type="button" style="background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.9rem; padding: 2px 6px;" onclick="dismissUpdateBanner()" title="Dismiss">✕</button>
+			</div>
+		</div>
+
+		<div class="workspace">
+		<div class="pane-controls">
+			<div class="bento-card">
+				<div class="field" style="margin-bottom: 0;">
+					<label for="urlSingle" style="align-items: center;">
+						<span>Archive URL <span id="partBadge" style="color: var(--text-dim); margin-left: 6px;"></span></span>
+						<select id="urlMode" onchange="toggleUrlMode()" style="width: auto; padding: 3px 8px; font-size: 0.75rem; border-radius: 5px;">
+							<option value="single" selected>Single URL</option>
+							<option value="multipart">Multi-Part URLs</option>
+						</select>
+					</label>
+					<div class="input-row" id="singleUrlRow">
+						<input type="text" id="urlSingle" placeholder="https://example.com/archive.rar (or drag & drop URL / .txt)" oninput="handleSingleInput(this.value)">
+						<button class="btn-sec" type="button" id="pasteBtn" onclick="pasteURL()" title="Paste from clipboard">Paste</button>
+						<button class="btn-sec" type="button" id="clearBtn" onclick="clearURL()" title="Clear URL">Clear</button>
+						<button class="btn-sec" type="button" id="inspectBtn" onclick="inspectURL()">Inspect</button>
+					</div>
+					<div class="input-row" id="multiUrlRow" style="display: none;">
+						<textarea id="urlMulti" rows="3" placeholder="Paste one URL per line:&#10;https://example.com/game.part1.rar&#10;https://example.com/game.part2.rar" oninput="updatePartBadge()"></textarea>
+						<div style="display: flex; flex-direction: column; gap: 6px;">
+							<button class="btn-sec" type="button" id="pasteBtnMulti" style="flex: 1;" onclick="pasteURL()">Paste</button>
+							<button class="btn-sec" type="button" id="clearBtnMulti" style="flex: 1;" onclick="clearURL()">Clear</button>
+							<button class="btn-sec" type="button" style="flex: 1;" id="inspectBtnMulti" onclick="inspectURL()">Inspect</button>
+						</div>
+					</div>
+					<details class="advanced-headers" style="margin-top: 8px;">
+						<summary style="font-size: 0.78rem; color: var(--text-muted); cursor: pointer; user-select: none;">Advanced HTTP Headers (Optional)</summary>
+						<div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 8px; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px;">
+							<div>
+								<label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 3px;">Authorization</label>
+								<input type="text" id="hdrAuth" placeholder="Bearer eyJ... or Basic dXNlcjpwYXNz" style="font-size: 0.8rem; padding: 6px 8px;">
+							</div>
+							<div>
+								<label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 3px;">Cookie</label>
+								<input type="text" id="hdrCookie" placeholder="session=abc123xyz; logged_in=true" style="font-size: 0.8rem; padding: 6px 8px;">
+							</div>
+							<div>
+								<label style="font-size: 0.72rem; color: var(--text-dim); display: block; margin-bottom: 3px;">Referer</label>
+								<input type="text" id="hdrReferer" placeholder="https://example.com/download-page" style="font-size: 0.8rem; padding: 6px 8px;">
+							</div>
+						</div>
+					</details>
+				</div>
+
+				<div class="inspect-panel" id="inspectPanel">
+					<div class="inspect-top">
+						<span id="inspFormat">Format: -</span>
+						<span id="inspSafety">-</span>
+					</div>
+					<div class="inspect-meta">
+						<div>Archive: <b id="inspDownload">-</b></div>
+						<div>Unpacked: <b id="inspUnpacked">-</b></div>
+					</div>
+					<div class="inspect-note" id="inspNote">-</div>
+
+					<div class="file-tree-box" id="fileTreeBox">
+						<div class="file-tree-head">
+							<span id="selectedStats">0 / 0 files selected</span>
+							<div style="display: gap: 8px;">
+								<button type="button" onclick="toggleAllFiles(true)" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:0.74rem; padding:0;">Select All</button>
+								<button type="button" onclick="toggleAllFiles(false)" style="background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:0.74rem; padding:0;">None</button>
+							</div>
+						</div>
+						<div class="file-tree-list" id="fileTreeList"></div>
+					</div>
+				</div>
+			</div>
+
+			<div class="bento-card">
+				<div class="field" style="margin-bottom: 12px;">
+					<label for="dest">Destination Directory</label>
+					<div class="input-row">
+						<input type="text" id="dest" placeholder="/path/to/destination">
+						<button class="btn-sec" type="button" id="browseDestBtn" onclick="openPicker('main')">Browse</button>
+					</div>
+				</div>
+
+				<div class="field" style="margin-bottom: 0;">
+					<label for="customFolder">Subfolder Override (Optional)</label>
+					<input type="text" id="customFolder" placeholder="Auto-detected if left blank">
+				</div>
+			</div>
+
+			<div class="actions">
+				<button class="btn-primary" type="button" id="startBtn" onclick="initiateStartTask()">Start Unpack</button>
+				<button class="btn-sec" type="button" id="queueBtn" onclick="addToQueue()" style="flex: 1; padding: 11px 12px; font-weight: 500;">Add to Queue</button>
+				<button class="btn-abort" type="button" id="cancelBtn" onclick="cancelTask()" disabled>Abort</button>
+			</div>
+		</div>
+
+		<div class="telemetry">
+			<div class="bento-card" style="margin-bottom: 12px;">
+				<div class="telemetry-head">
+					<span class="telemetry-title">Live Telemetry</span>
+					<label class="speed-cap-wrap" for="liveSpeedLimit">
+						<span>Speed Cap</span>
+						<select id="liveSpeedLimit" class="speed-cap-select" onchange="setLiveSpeedLimit(this.value)">
+							<option value="0">Unlimited</option>
+							<option value="5">5 MB/s</option>
+							<option value="10">10 MB/s</option>
+							<option value="15">15 MB/s (Balanced)</option>
+							<option value="20">20 MB/s</option>
+							<option value="25">25 MB/s</option>
+							<option value="35">35 MB/s</option>
+							<option value="50">50 MB/s</option>
+						</select>
+					</label>
+				</div>
+				<div class="thermal-quick-banner" id="thermalQuickBanner" style="display: none;">
+					<div class="thermal-quick-msg">
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; color: #f59e0b;"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+						<span>Device warming up from live decompression —</span>
+						<button type="button" class="btn-thermal-action" onclick="applyThermalBalancedCap()">Switch to Balanced 15 MB/s</button>
+					</div>
+					<button type="button" class="thermal-banner-close" onclick="dismissThermalBanner()" title="Dismiss">✕</button>
+				</div>
+
+				<div class="hero-progress-top">
+					<div class="hero-percent-readout" id="percentVal">0.0%</div>
+					<div class="hero-live-stats">
+						<span class="hero-speed-val" id="speed">0.0 MB/s</span>
+						<span class="hero-eta-val">ETA <b id="eta">--:--</b></span>
+					</div>
+				</div>
+
+				<div class="progress-track">
+					<div class="progress-fill" id="bar"></div>
+				</div>
+
+				<div class="stream-health-pill" id="streamHealthPill">
+					Saved ~0.0 GB temp storage • 4 streams • 0 retries
+				</div>
+			</div>
+
+			<div class="metrics">
+				<div class="metric">
+					<div class="metric-k">Streamed</div>
+					<div class="metric-v" id="payload">0.0 MB</div>
+				</div>
+				<div class="metric">
+					<div class="metric-k">Free Disk</div>
+					<div class="metric-v" id="storage">- GB</div>
+				</div>
+				<div class="metric" id="metricRam">
+					<div class="metric-k">App RAM</div>
+					<div class="metric-v" id="appRam">-- MB</div>
+				</div>
+				<div class="metric" id="metricTemp">
+					<div class="metric-k">Device Temp</div>
+					<div class="metric-v" id="deviceTemp">-- °C</div>
+				</div>
+			</div>
+
+			<div class="sparkline-card">
+				<div class="sparkline-head">
+					<span>Throughput History (60s)</span>
+					<div style="display: flex; gap: 10px; align-items: center;">
+						<span id="avgSpeedLabel">Avg: 0.0 MB/s</span>
+						<span id="peakSpeedLabel">Peak: 0.0 MB/s</span>
+					</div>
+				</div>
+				<canvas id="speedCanvas" width="400" height="44"></canvas>
+			</div>
+
+			<div class="bento-card bento-card-compact" style="margin-top: 12px; margin-bottom: 0;">
+				<div class="status-line" style="margin-top: 0;">
+					<span class="status-text" id="statusMsg">Idle</span>
+					<span id="filesCount" style="color: var(--text-dim); font-variant-numeric: tabular-nums;">0 files</span>
+				</div>
+				<div class="current-file" id="curFile">-</div>
+			</div>
+
+			<div class="queue-panel" id="queuePanel">
+				<div class="queue-head">
+					<span>Batch Queue</span>
+					<span id="queueCount">0 queued</span>
+				</div>
+				<div class="queue-list" id="queueList"></div>
+			</div>
+		</div>
+
+		<div class="complete-panel" id="completePanel" style="grid-column: 1 / -1;">
+			<div class="complete-header">
+				<span>Extraction Complete</span>
+				<span id="sumRate" style="color: var(--text-muted); font-weight: 500;">-</span>
+			</div>
+			<div class="complete-stats">
+				<div>Files: <b id="sumFiles">-</b></div>
+				<div>Duration: <b id="sumTime">-</b></div>
+				<div>Unpacked: <b id="sumDisk">-</b></div>
+				<div>Integrity: <b id="sumIntegrity">-</b></div>
+			</div>
+			<div class="complete-path" id="sumPath">-</div>
+
+			<div class="exe-selector" id="exeSection" style="display: none;">
+				<label for="exeSelect" style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;">Detected Executable</label>
+				<select id="exeSelect"></select>
+			</div>
+
+			<div class="complete-actions">
+				<button class="btn-sec" type="button" style="flex: 1; padding: 9px;" onclick="openTargetFolder()">Open Folder</button>
+				<button class="btn-primary" type="button" id="addSteamBtn" style="flex: 1; padding: 9px; font-size: 0.82rem; display: none;" onclick="addToSteam()">Add to Steam</button>
+			</div>
+		</div>
+		</div>
+
+		<footer>
+			developed by <a href="https://github.com/musakpg" target="_blank" rel="noopener noreferrer">github.com/musakpg</a>
+		</footer>
+	</div>
+
+	<!-- Non-blocking Smart Thermal & Memory Alert Modal -->
+	<div class="overlay" id="thermalAlertModal" onclick="if(event.target===this) dismissThermalAlertModal(false)">
+		<div class="dialog" style="max-width: 440px;" role="dialog" aria-modal="true" aria-labelledby="thermalAlertTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="thermalAlertTitle" style="display: flex; align-items: center; gap: 8px; color: #f59e0b; font-weight: 600;">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+					Thermal Warning
+				</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="dismissThermalAlertModal(false)">✕</button>
+			</div>
+			<div class="dialog-body">
+				<p style="margin: 0 0 12px 0; color: var(--text-muted); line-height: 1.5;" id="thermalAlertMsg">
+					Your device is warming up (<span id="thermalAlertTemp" style="font-weight:600; color: #f59e0b;">43.0°C</span>) under high-speed live decompression. Throttling bandwidth allows your device to cool down while continuing the download safely without interruption.
+				</p>
+			</div>
+			<div class="dialog-foot">
+				<button class="btn-sec" type="button" style="padding: 8px 14px;" onclick="dismissThermalAlertModal(true)">Continue Anyway</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 16px; background: #f59e0b; color: #0b0d10; font-weight: 600;" onclick="throttleFromThermalModal()">Throttle to 10 MB/s</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Duplicate / Existing Folder Guard Modal -->
+	<div class="overlay" id="conflictModal" onclick="if(event.target===this) closeConflictModal()">
+		<div class="dialog" style="max-width: 440px;" role="dialog" aria-modal="true" aria-labelledby="conflictTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="conflictTitle">Folder Already Exists</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closeConflictModal()">✕</button>
+			</div>
+			<div class="dialog-body">
+				<p style="margin: 0 0 10px 0; color: var(--text-muted); line-height: 1.5;" id="conflictMsg">
+					The destination folder already contains existing files. How would you like to proceed?
+				</p>
+			</div>
+			<div class="dialog-foot" style="flex-wrap: wrap;">
+				<button class="btn-sec" type="button" style="padding: 8px 12px;" onclick="resolveConflictChoice('rename')">Auto-Rename (_2)</button>
+				<button class="btn-sec" type="button" style="padding: 8px 12px;" onclick="resolveConflictChoice('merge')">Merge</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 14px; background: var(--danger); color: #ffffff;" onclick="resolveConflictChoice('overwrite')">Clean & Overwrite</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Abort Confirmation Modal -->
+	<div class="overlay" id="abortModal" onclick="if(event.target===this) closeAbortModal()">
+		<div class="dialog" style="max-width: 400px;" role="dialog" aria-modal="true" aria-labelledby="abortTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="abortTitle">Abort Extraction?</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closeAbortModal()">✕</button>
+			</div>
+			<div class="dialog-body">
+				<p style="margin: 0; color: var(--text-muted); line-height: 1.5;">
+					This will abort your download. Any partially extracted files from this session will be deleted immediately.
+				</p>
+			</div>
+			<div class="dialog-foot">
+				<button class="btn-sec" type="button" style="padding: 8px 14px;" onclick="closeAbortModal()">Keep Running</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 16px; background: var(--danger); color: #ffffff;" onclick="confirmAbortTask()">Confirm Abort</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Password Prompt Modal -->
+	<div class="overlay" id="passwordModal" onclick="if(event.target===this) closePasswordModal()">
+		<div class="dialog" style="max-width: 400px;" role="dialog" aria-modal="true" aria-labelledby="passTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="passTitle">Encrypted Archive</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closePasswordModal()">✕</button>
+			</div>
+			<div class="dialog-body">
+				<p style="margin: 0 0 12px 0; color: var(--text-muted);" id="passPromptMsg">This archive requires a password to decrypt and stream.</p>
+				<input type="password" id="archivePassword" placeholder="Enter archive password" onkeydown="if(event.key==='Enter') submitPassword()">
+			</div>
+			<div class="dialog-foot">
+				<button class="btn-sec" type="button" style="padding: 8px 14px;" onclick="closePasswordModal()">Cancel</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 16px;" onclick="submitPassword()">Unlock & Stream</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Expired CDN URL Refresh Modal -->
+	<div class="overlay" id="resumeUrlModal" onclick="if(event.target===this) closeResumeUrlModal()">
+		<div class="dialog" style="max-width: 460px;" role="dialog" aria-modal="true" aria-labelledby="resumeUrlTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="resumeUrlTitle">Download Link Expired</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closeResumeUrlModal()">✕</button>
+			</div>
+			<div class="dialog-body">
+				<p style="margin: 0 0 12px 0; color: var(--text-muted); line-height: 1.5;" id="resumeUrlMsg">
+					Download link expired or blocked by host. Refresh the link and click Retry to resume.
+				</p>
+				<input type="text" id="refreshedUrlInput" placeholder="https://example.com/refreshed-archive-url" onkeydown="if(event.key==='Enter') submitRefreshedUrl()">
+			</div>
+			<div class="dialog-foot">
+				<button class="btn-sec" type="button" style="padding: 8px 14px;" onclick="closeResumeUrlModal()">Close</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 16px;" onclick="submitRefreshedUrl()">Retry</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Settings Modal -->
+	<div class="overlay" id="settingsModal" onclick="if(event.target===this) closeSettings()">
+		<div class="dialog modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="settingsTitle">Settings</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closeSettings()">✕</button>
+			</div>
+			<div class="tabs">
+				<button class="tab-btn active" type="button" onclick="switchTab('pref', this)">Preferences</button>
+				<button class="tab-btn" type="button" onclick="switchTab('faq', this)">FAQ</button>
+				<button class="tab-btn" type="button" onclick="switchTab('about', this)">About</button>
+			</div>
+			<div class="dialog-body">
+				<div class="tab-pane active" id="tab-pref">
+					<label class="pref-row">
+						<input type="checkbox" id="prefAutoSubfolder" checked onchange="savePrefs()">
+						<div>
+							<div class="pref-title">Prevent scattered root files</div>
+							<div class="pref-desc">Automatically create a parent subfolder if an archive lacks a root directory.</div>
+						</div>
+					</label>
+					<label class="pref-row">
+						<input type="checkbox" id="prefFlattenSingleRoot" checked onchange="savePrefs()">
+						<div>
+							<div class="pref-title">Smart root flattening</div>
+							<div class="pref-desc">Eliminate double-nested wrapper folders (e.g. Game/Game/game.exe becomes Game/game.exe).</div>
+						</div>
+					</label>
+					<label class="pref-row" id="prefPlaySoundRow">
+						<input type="checkbox" id="prefPlaySound" checked onchange="savePrefs()">
+						<div>
+							<div class="pref-title">Completion sound chime</div>
+							<div class="pref-desc">Play a subtle system audio cue when extraction completes.</div>
+						</div>
+					</label>
+					<label class="pref-row" id="prefPreventIdleRow">
+						<input type="checkbox" id="prefPreventIdle" checked onchange="savePrefs()">
+						<div>
+							<div class="pref-title">Prevent system sleep during stream</div>
+							<div class="pref-desc">Inhibit idle suspend while large archives are actively downloading.</div>
+						</div>
+					</label>
+					<label class="pref-row" id="prefDesktopNotifyRow">
+						<input type="checkbox" id="prefDesktopNotify" checked onchange="savePrefs()">
+						<div>
+							<div class="pref-title">System Desktop Notifications</div>
+							<div class="pref-desc">Show OS notification toasts when extraction starts or finishes.</div>
+						</div>
+					</label>
+					<label class="pref-row" id="prefLiveProgressRow">
+						<input type="checkbox" id="prefLiveProgress" checked onchange="savePrefs()">
+						<div>
+							<div class="pref-title">Live progress notifications</div>
+							<div class="pref-desc">Show real-time progress bar in Android notification shade or Linux/Windows taskbar.</div>
+						</div>
+					</label>
+					<label class="pref-row" id="addSteamRow">
+						<input type="checkbox" id="prefAddSteam" onchange="savePrefs()">
+						<div>
+							<div class="pref-title">Add to Steam Shortcuts</div>
+							<div class="pref-desc">Register game executables and artwork directly in Steam's library.</div>
+						</div>
+					</label>
+
+					<div class="field" id="prefPowerActionField" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);">
+						<label for="prefPowerAction">Post-Completion Power Action (After Queue Drains)</label>
+						<select id="prefPowerAction" onchange="savePrefs()">
+							<option value="none" selected>None (Stay Awake)</option>
+							<option value="sleep">Sleep Device (15s delay)</option>
+							<option value="shutdown">Shut Down Device (15s delay)</option>
+						</select>
+					</div>
+
+					<div class="field" style="margin-top: 12px;">
+						<label for="prefConflictMode">Existing Folder Conflict Policy</label>
+						<select id="prefConflictMode" onchange="savePrefs()">
+							<option value="ask" selected>Prompt Every Time</option>
+							<option value="merge">Merge with Existing</option>
+							<option value="rename">Auto-Rename Subfolder (_2)</option>
+							<option value="overwrite">Clean & Overwrite</option>
+						</select>
+					</div>
+
+					<div class="field" style="margin-top: 12px;">
+						<label for="prefSpeedLimit">Bandwidth Speed Limit</label>
+						<select id="prefSpeedLimit" onchange="savePrefs(); setLiveSpeedLimit(this.value);">
+							<option value="0" selected>Unlimited</option>
+							<option value="5">5 MB/s</option>
+							<option value="10">10 MB/s</option>
+							<option value="15">15 MB/s (Balanced)</option>
+							<option value="20">20 MB/s</option>
+							<option value="25">25 MB/s</option>
+							<option value="35">35 MB/s</option>
+							<option value="50">50 MB/s</option>
+						</select>
+					</div>
+
+					<div class="field" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);">
+						<label for="prefParallelConns">Parallel HTTP Connections (Speed Acceleration)</label>
+						<select id="prefParallelConns" onchange="savePrefs()">
+							<option value="1">1 Connection (Sequential / Low overhead)</option>
+							<option value="2">2 Connections</option>
+							<option value="4" selected>4 Connections (Balanced Acceleration)</option>
+							<option value="8">8 Connections (Maximum Bandwidth)</option>
+						</select>
+					</div>
+
+					<div class="field" style="margin-top: 12px;">
+						<label for="prefBufferSize">I/O Stream Buffer Size (Memory vs Throughput)</label>
+						<select id="prefBufferSize" onchange="savePrefs()">
+							<option value="1">1 MB (Low RAM footprint / Background gaming)</option>
+							<option value="2">2 MB (Light / Mobile)</option>
+							<option value="4" selected>4 MB (Balanced Default)</option>
+							<option value="8">8 MB (High-Speed NVMe & WiFi 6E)</option>
+							<option value="16">16 MB (Maximum Gigabit / Desktop Throughput)</option>
+						</select>
+					</div>
+
+					<div class="field" style="margin-top: 12px;">
+						<label for="prefExcludePatterns">Exclude File Patterns (Comma-separated)</label>
+						<input type="text" id="prefExcludePatterns" onchange="savePrefs()" placeholder="e.g. *_french*, *_german*, *Bonus_OST*">
+					</div>
+
+					<div class="field" style="margin-top: 12px;">
+						<label for="prefTheme">Theme</label>
+						<select id="prefTheme" onchange="onThemeSelectChange()">
+							<option value="system">System (Default)</option>
+							<option value="dark">Dark</option>
+							<option value="light">Light</option>
+						</select>
+					</div>
+
+					<div class="field" style="margin-top: 12px;">
+						<label for="prefDefaultDest">Default Destination Path</label>
+						<div class="input-row">
+							<input type="text" id="prefDefaultDest" onchange="savePrefs()" placeholder="/path/to/default">
+							<button class="btn-sec" type="button" onclick="openPicker('pref')">Browse</button>
+						</div>
+					</div>
+
+					<div class="field" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border);">
+						<label for="prefLogPath">Diagnostics & Application Logs</label>
+						<div class="input-row">
+							<input type="text" id="prefLogPath" readonly value="" placeholder="~/.config/directcrate/directcrate.log" style="color: var(--text-muted); cursor: text;">
+							<button class="btn-sec" type="button" onclick="openLogsModal()">View Logs</button>
+						</div>
+						<div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 4px;">
+							Inspect live streaming logs, crash stack traces, and export diagnostic issue reports.
+						</div>
+					</div>
+				</div>
+
+				<div class="tab-pane" id="tab-faq">
+					<div style="font-weight: 600; font-size: 0.88rem; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+						Beginner & Everyday User Guide
+					</div>
+
+					<div class="faq-item">
+						<div class="faq-q">Is DirectCrate safe and private? Does it use cloud servers?</div>
+						<div class="faq-a">DirectCrate is 100% on-device and offline-first. Your own device (phone, Steam Deck, or PC) connects directly to the download link and unpacks files straight into your chosen local folder. No external cloud servers, proxies, or remote middlemen ever touch, see, or store your files or links. There are zero ads, zero user accounts, zero trackers, and zero analytics.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does DirectCrate save half my storage space?</div>
+						<div class="faq-a">Traditional download apps force a "double storage penalty": if you download a 10 GB <code>.rar</code> game, your device must store the 10 GB archive file first, and then needs another 10 GB of free space to unpack it—requiring 20 GB of free storage in total! DirectCrate decompresses data in memory as it downloads and writes directly to your final folder. A 10 GB archive only needs 10 GB of storage total, saving half your storage space and leaving zero leftover archive files to delete.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">Why does my phone or handheld get warm and use more battery?</div>
+						<div class="faq-a">Downloading and unpacking massive files live at high speed is intensive work. DirectCrate runs all 4 major hardware systems simultaneously:
+							<ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+								<li><b>Network:</b> Downloading gigabytes of data over Wi-Fi or cellular.</li>
+								<li><b>RAM (Memory):</b> Holding active streaming chunks in working memory.</li>
+								<li><b>CPU (Processor):</b> Uncompressing complex archive formats (like RAR5 or 7Z) in real time.</li>
+								<li><b>Storage:</b> Writing thousands of individual files directly to your SSD or flash drive.</li>
+							</ul>
+							This workload is very similar to running a modern 3D game—moderate warmth and battery usage are completely normal and safe. You can check the live <b>App RAM</b> and <b>Device Temp</b> indicators at the bottom of the screen anytime.
+						</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">Should I use "Unlimited" speed or set a "Speed Cap"?</div>
+						<div class="faq-a">It depends on your current situation:
+							<ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+								<li><b>Unlimited (Full Speed):</b> Downloads and unpacks as fast as your internet connection and device can go. Ideal when plugged into a wall charger or on a desktop PC.</li>
+								<li><b>Speed Cap (Cool & Battery Saver):</b> Setting a speed cap (such as 10 MB/s or 25 MB/s) from the speed dropdown limits how fast data flows. This gives your device breathing room, lowers CPU usage, keeps temperatures significantly cooler, reduces fan noise on handhelds, and preserves battery life when on the go.</li>
+							</ul>
+						</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">What kind of links can I download? (Direct Link vs. Webpage)</div>
+						<div class="faq-a">DirectCrate requires a <b>direct file download link</b>—one that immediately starts sending the archive file when clicked (usually ending in <code>.rar</code>, <code>.zip</code>, <code>.7z</code>, <code>.tar.gz</code>, etc., or providing a direct byte stream). DirectCrate <b>cannot</b> download from webpage links (such as file-sharing websites with countdown timers, pop-up ads, "Wait 30 seconds" buttons, or CAPTCHA puzzles). To get a direct link: in your web browser, click the download button so the download begins, then open your browser's download manager, right-click the file, and choose "Copy download link" (or right-click the final button and select "Copy Link Address").</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How do I download multi-part archives (part1.rar, part2.rar)?</div>
+						<div class="faq-a">Many large games and datasets are split into several parts (<code>game.part1.rar</code>, <code>game.part2.rar</code>, <code>game.part3.rar</code>). In DirectCrate, simply switch the mode toggle from <b>Single URL</b> to <b>Multi-Part URLs</b>. Paste all your part links into the box (one link per line or separated by spaces), choose your destination folder, and click Download. DirectCrate will automatically download each part in order, seamlessly stitching them together into one complete, ready-to-use folder.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">What if an archive is protected with a password?</div>
+						<div class="faq-a">If an archive requires a password (common with <code>.7z</code> and <code>.rar</code> archives), DirectCrate detects the encryption before extraction begins. A clean password prompt will appear on your screen. Simply enter the password once, and DirectCrate will decrypt and extract all files automatically.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">Why does the download speed go up and down while downloading?</div>
+						<div class="faq-a">Temporary dips in download speed are completely normal and part of healthy storage operation:
+							<ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+								<li>When an archive reaches folders containing thousands of tiny files (such as icons, scripts, shaders, or small textures), the operating system must create and register thousands of individual directory entries on the storage drive, which takes a moment and causes the download speed to briefly dip.</li>
+								<li>As soon as the stream moves on to larger files (like 3D models, textures, or video cutscenes), the speed immediately shoots back up to your maximum connection speed.</li>
+							</ul>
+						</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">Can I download in the background? What happens if connection drops or I abort?</div>
+						<div class="faq-a">
+							<ul style="margin: 0; padding-left: 18px; line-height: 1.5;">
+								<li><b>Background Downloads:</b> Yes! On Android, you can press Home, switch to other apps, or turn off your screen while downloading (just keep the notification visible in your notification shade and do not swipe-kill the app).</li>
+								<li><b>Connection Drops:</b> If your Wi-Fi or cellular network drops, DirectCrate safely pauses without deleting any files already unpacked. Once your connection returns (or if the link expired and you provide a refreshed link), it resumes right where it left off.</li>
+								<li><b>Abort Button:</b> If you change your mind and click the red <b>Abort</b> button, DirectCrate immediately stops all network downloads and cleanly deletes any unfinished files so no leftover clutter remains on your storage.</li>
+							</ul>
+						</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">Why did Windows or Android show an "Unknown App" warning and ask for storage permission?</div>
+						<div class="faq-a">
+							<ul style="margin: 0; padding-left: 18px; line-height: 1.5;">
+								<li><b>Unknown App / SmartScreen Warning:</b> DirectCrate is an independent, free open-source tool downloaded directly from GitHub rather than a commercial app store. Because it is distributed independently, Windows SmartScreen and Android display an "Unknown App" warning on first install. DirectCrate is completely transparent, open-source, and has zero malware or trackers.</li>
+								<li><b>Storage Permission on Android:</b> Android requires the "All files access" (<code>MANAGE_EXTERNAL_STORAGE</code>) permission so DirectCrate can create your extracted game or application folder inside your public <code>Download</code> directory or on your micro-SD card. DirectCrate strictly writes to your selected folder and never reads, scans, or uploads your personal photos, messages, or files.</li>
+							</ul>
+						</div>
+					</div>
+
+					<div style="font-weight: 600; font-size: 0.88rem; color: var(--accent); margin: 20px 0 12px 0; padding-top: 14px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 6px;">
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+						Technical & System Architecture
+					</div>
+
+					<div class="faq-item">
+						<div class="faq-q">What is zero-temp-disk streaming?</div>
+						<div class="faq-a">Traditional download managers write a full compressed archive (.rar/.zip) to disk, requiring 2x storage space before unpacking. DirectCrate streams chunks over HTTP Range directly into memory buffers, decompresses on the fly, and writes unpacked files straight to their destination without ever saving intermediate archive files.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">Which archive formats and volume chains are supported?</div>
+						<div class="faq-a">DirectCrate supports single and multi-part RAR5 (.part1.rar, .part2.rar, .r00), standard ZIP archives, 7-Zip (.7z) with AES-256 password decryption, and compressed tarballs (.tar, .tar.gz, .tar.zst) across single or chained URLs.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does Selective File Inspection work?</div>
+						<div class="faq-a">For ZIP and 7Z archives, clicking Inspect queries the remote Central Directory or 7Z header via byte ranges without fetching the entire archive. You can inspect the complete file hierarchy and uncheck files you do not need (such as redundant language packs or bonus OSTs) so DirectCrate downloads only selected ranges.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does expiring CDN link hot-swapping work?</div>
+						<div class="faq-a">When direct download links expire mid-stream with HTTP 403 Forbidden or 410 Gone, DirectCrate cleanly pauses the stream without discarding partially extracted files. Pasting a renewed direct link resumes the download from the exact byte offset.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How do live progress bar notifications work?</div>
+						<div class="faq-a">When "Live progress notifications" is enabled in Preferences, DirectCrate provides real-time progress updates across platforms: on Android, it updates the foreground notification with an active progress bar and speed readout; on Linux (KDE Plasma, Bazzite, GNOME), it emits D-Bus Unity.LauncherEntry signals via gdbus; on Windows, it renders green/yellow taskbar progress on the standalone window via ITaskbarList3. Disabling this toggle clears the taskbar bar and keeps the Android notification static.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does sleep prevention and overnight automation work?</div>
+						<div class="faq-a">While active, DirectCrate prevents sleep via systemd-inhibit on Linux, thread execution state on Windows, and PowerManager WakeLock / WifiLock on Android. You can configure Post-Completion Power Actions (Sleep or Shut Down with a 15-second grace countdown) which trigger only after the entire batch queue drains.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does Add to Steam work?</div>
+						<div class="faq-a">DirectCrate parses your local Steam user directories, backs up shortcuts.vdf to shortcuts.vdf.bak, registers chosen game executables, and automatically queries public Steam Store APIs to fetch vertical capsule posters, horizontal hero banners, and transparent logos into Steam's grid directory.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">What are the folder conflict and root flattening policies?</div>
+						<div class="faq-a">When an extraction folder already exists, DirectCrate can Prompt Every Time, Merge with Existing, Clean & Overwrite, or Auto-Rename with a suffix (_2). Redundant wrapper folders (e.g. Game/Game/game.exe) are automatically hoisted into a clean single folder upon completion.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does single-instance locking and background lifecycle management work?</div>
+						<div class="faq-a">On Desktop (Linux & Windows), launching DirectCrate while an instance is already running sends a <code>POST /api/focus</code> signal to the running server to instantly focus or re-open the existing app window without duplicate background processes or port conflicts. When all browser tabs or app windows close, DirectCrate checks whether an extraction or batch queue is active: if active, it continues streaming in the background without interruption; once completely finished and idle with zero connected UI clients for 10 seconds, it gracefully exits. On Android, DirectCrate runs a Foreground Service with WakeLock/WifiLock: swiping the app from Recents while a job is active keeps streaming in the background with notification shade progress; once the queue finishes, it posts a completion notification and automatically stops the service after 5 seconds to conserve battery. If closed while idle, the service stops after a 2.5-second grace period.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does pre-download validation and low-disk auto-pausing work?</div>
+						<div class="faq-a">Before initiating any network stream, DirectCrate validates destination directory write permissions via an ephemeral probe file test and checks available filesystem capacity against the archive's remote Content-Length with a 1 GB safety margin. If disk space is exhausted mid-stream (ENOSPC) or write permission is denied (EACCES), DirectCrate safely pauses into <code>needs_disk</code> state without terminating or losing extracted files. It automatically polls the target directory every 2 seconds and resumes extraction the instant at least 512 MB of free space is cleared.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does archive path sanitization protect against directory traversal?</div>
+						<div class="faq-a">All entry paths within RAR, ZIP, 7Z, and TAR archives undergo strict cross-platform sanitization. Any entry containing relative path traversal components (<code>../</code>) is rejected immediately. Backslashes are normalized, redundant dot segments are collapsed, and characters forbidden on Windows, NTFS, or Android FAT/exFAT filesystems (such as <code>:</code>, <code>*</code>, <code>?</code>, <code>"</code>, <code>&lt;</code>, <code>&gt;</code>, <code>|</code>, and trailing dots/spaces) are stripped or replaced so archives unpack cleanly on any operating system.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">What happens if configuration or history files become corrupted?</div>
+						<div class="faq-a">If sudden power loss, system crash, or interrupted I/O corrupts <code>settings.json</code> or <code>history.json</code>, DirectCrate's startup engine traps the syntax error, preserves the damaged file as <code>&lt;filename&gt;.corrupt.bak</code> for diagnostic inspection, logs a warning, and cleanly loads valid defaults without failing to launch.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does the Android 15/16 fail-safe bootstrap and one-tap recovery work?</div>
+						<div class="faq-a">On Android 15 and 16, DirectCrate starts the native Go engine directly on a background thread with thread-safe idempotent port detection, guaranteeing loopback availability even if modern background foreground-service start restrictions delay the service. It validates All Files Access (<code>MANAGE_EXTERNAL_STORAGE</code>) for public Download and SD card extraction, polls the status endpoint with an automatic 3-second re-invocation safeguard, and presents an interactive "Retry Connection" button on the error screen if startup encounters a delay.</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">How does DirectCrate manage device hardware resources (Network, RAM, CPU, Storage)?</div>
+						<div class="faq-a">DirectCrate is engineered for extreme hardware efficiency with full transparency across 4 core subsystems:
+							<ul style="margin: 6px 0 0 0; padding-left: 18px; line-height: 1.5;">
+								<li><b>Network:</b> Streams directly over HTTP/HTTPS with parallel HTTP Range prefetching (1–8 connections, default 4), token-bucket bandwidth limiting (5–50 MB/s or Unlimited), persistent TCP connection pooling, and seamless resume for dropped connections or expired CDN URLs.</li>
+								<li><b>RAM:</b> Consistently operates with a tiny memory footprint (typically 30–64 MB) displayed live in the telemetry bar. Buffers are recycled through reusable pools (<code>sync.Pool</code>) in 256 KB chunks, preventing garbage collection stalls and out-of-memory errors on 4 GB–16 GB devices.</li>
+								<li><b>CPU:</b> Native multi-format streaming decompressors (RAR5, ZIP, 7Z, TAR.GZ, TAR.ZST) run at normal process priority without maxing out CPU cores or overheating handhelds, preserving battery life and keeping device thermals cool.</li>
+								<li><b>Storage:</b> Zero intermediate archive files! Decompressed files are written straight to destination storage with pre-flight write probes, 1 GB capacity checks, and mid-stream <code>needs_disk</code> auto-pausing with a 512 MB resume floor.</li>
+							</ul>
+						</div>
+					</div>
+					<div class="faq-item">
+						<div class="faq-q">What data is stored locally and what telemetry is sent?</div>
+						<div class="faq-a">DirectCrate is 100% private and offline-first with zero telemetry, zero analytics, and zero tracking. All user preferences, logs, and extraction history reside strictly in ~/.config/directcrate/ (or app-internal storage on Android). External network calls are strictly limited to your provided archive URLs and optional Steam artwork lookups.</div>
+					</div>
+				</div>
+
+				<div class="tab-pane" id="tab-about">
+					<div style="font-weight: 600; font-size: 0.95rem; color: var(--text); margin-bottom: 6px;">DirectCrate v1.0.0</div>
+					<p style="margin: 0 0 12px 0; color: var(--text-muted); line-height: 1.5; font-size: 0.82rem;">
+						Direct-to-disk remote archive streamer engineered for storage-constrained devices including Steam Deck, ROG Ally, Bazzite/SteamOS handhelds, Linux & Windows desktops, and Android 15/16 mobile environments.
+					</p>
+
+					<div style="margin-bottom: 12px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem;">
+						<div style="font-weight: 600; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+							Beginner Quick Reference
+						</div>
+						<ul style="margin: 0; padding-left: 18px; color: var(--text-muted); line-height: 1.55;">
+							<li><b>100% On-Device & Private:</b> Runs entirely on your phone or PC. No cloud servers, proxies, or tracking.</li>
+							<li><b>Zero Temp Space:</b> Saves half your drive space by unpacking live into your final folder (no leftover archives).</li>
+							<li><b>Direct File Links:</b> Requires a direct download link (e.g. ending in .rar/.zip), not a webpage with timers or ads.</li>
+							<li><b>Cool & Balanced Mode:</b> Use the Speed Cap (10–25 MB/s) to keep handhelds cool and extend battery life.</li>
+							<li><b>Multi-Part & Passwords:</b> Switch to Multi-Part URLs for split archives, and enter passwords when prompted.</li>
+						</ul>
+					</div>
+
+					<div style="margin-bottom: 12px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem;">
+						<div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Platform Integrations & OS Hooks</div>
+						<ul style="margin: 0; padding-left: 18px; color: var(--text-muted); line-height: 1.5;">
+							<li><b>Linux / SteamOS / Bazzite:</b> Standalone chromeless app window (Chromium binaries & Flatpaks), D-Bus LauncherEntry taskbar progress, systemd-inhibit sleep lock, and notify-send cues.</li>
+							<li><b>Windows:</b> Standalone Edge/Chrome app window, ITaskbarList3 taskbar progress bar (normal green / paused yellow), and native system sleep inhibition.</li>
+							<li><b>Android 15/16:</b> 16KB ELF page-aligned native library (arm64-v8a), direct idempotent background engine bootstrap with foreground service fallback, MANAGE_EXTERNAL_STORAGE checks, one-tap connection recovery, and system-synced theming.</li>
+							<li><b>Smart Lifecycle & Single-Instance:</b> Single-instance desktop lock with 10s idle auto-exit when all windows close; Android foreground service keeps streaming through Recents dismissal and auto-stops 5s after batch completion.</li>
+							<li><b>Lifecycle & Fault Tolerance:</b> Pre-download write-probe and storage margin checks, mid-stream <code>needs_disk</code> auto-pausing (512 MB resume floor), directory traversal prevention (<code>../</code> blocking), automatic <code>.corrupt.bak</code> state recovery, and decompression panic recovery traps.</li>
+						</ul>
+					</div>
+
+					<div style="margin-bottom: 12px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem;">
+						<div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Hardware & Resource Footprint</div>
+						<ul style="margin: 0; padding-left: 18px; color: var(--text-muted); line-height: 1.5;">
+							<li><b>Network:</b> Parallel HTTP Range streaming (1–8 conns), token-bucket speed capping, and auto-resume.</li>
+							<li><b>RAM:</b> 30–64 MB typical footprint tracked in live telemetry, with zero-leak <code>sync.Pool</code> buffer recycling.</li>
+							<li><b>CPU:</b> Optimized single/multi-thread streaming decompression designed for handhelds and battery longevity.</li>
+							<li><b>Storage:</b> Direct-to-disk streaming eliminating the 2x storage penalty of traditional downloaders.</li>
+						</ul>
+					</div>
+
+					<div style="margin-bottom: 12px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem;">
+						<div style="font-weight: 600; color: var(--text); margin-bottom: 4px;">Local Storage & Privacy Guarantee</div>
+						<div style="color: var(--text-muted); line-height: 1.45;">
+							Config & State: <code>~/.config/directcrate/</code> (Linux/Windows) or app private storage (Android) with automatic <code>.corrupt.bak</code> recovery.<br>
+							Logs & Diagnostics: <code>directcrate.log</code> (rotated at 5 MB) and <code>crash.log</code>.<br>
+							<b>Zero telemetry, zero tracking, and zero data collection.</b>
+						</div>
+					</div>
+
+					<!-- Update Check Section -->
+					<div style="margin-bottom: 12px; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
+						<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; margin-bottom: 8px;">
+							<span>Installed Version: <b style="color: var(--text);">v1.0.0</b></span>
+							<span id="manualUpdateStatus" style="font-size: 0.76rem; color: var(--text-dim);">Up to date</span>
+						</div>
+						<div style="display: flex; gap: 8px;">
+							<button class="btn-sec" type="button" id="manualCheckUpdateBtn" style="flex: 1; padding: 7px 12px;" onclick="checkForUpdatesManual()">Check for Updates</button>
+							<button class="btn-sec" type="button" id="openReleaseBtn" style="flex: 1; padding: 7px 12px;" onclick="openReleasePage()">GitHub Releases</button>
+						</div>
+					</div>
+
+					<div style="padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; font-size: 0.8rem; color: var(--text-muted);">
+						Source & Release Updates: <a href="https://github.com/musakpg/directcrate" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">github.com/musakpg/directcrate</a>
+					</div>
+
+					<div id="lanUrlsContainer" style="margin-top: 12px; display: none;">
+						<div style="font-size: 0.78rem; font-weight: 600; color: var(--text); margin-bottom: 4px;">Network & LAN Access</div>
+						<div style="font-size: 0.72rem; color: var(--text-dim); margin-bottom: 6px;">Connect handhelds, phones, and laptops on the same Wi-Fi/LAN:</div>
+						<div id="lanUrlsList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+					</div>
+				</div>
+			</div>
+			<div class="dialog-foot" style="justify-content: space-between;">
+				<button class="btn-sec" type="button" onclick="resetSettings()" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">Reset Defaults</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 16px;" onclick="closeSettings()">Done</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Directory Browser Modal -->
+	<div class="overlay" id="pickerModal" style="z-index: 110;" onclick="if(event.target===this) closePicker()">
+		<div class="dialog modal" role="dialog" aria-modal="true" aria-labelledby="pickerTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="pickerTitle">Select Directory</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closePicker()">✕</button>
+			</div>
+			<div style="padding: 10px 16px; background: var(--bg); border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--text-muted); word-break: break-all; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+				<div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+					<span style="color: var(--text-dim); margin-right: 4px;">Host:</span>
+					<b id="modalCurrentPath" style="color: var(--text); font-weight: 500;">Loading...</b>
+				</div>
+			</div>
+			<div id="pickerShortcuts" class="picker-shortcuts"></div>
+			<div class="dialog-body" id="dirList" style="padding: 8px; flex: 1; min-height: 0; overflow-y: auto;"></div>
+			<div class="dialog-foot picker-dialog-foot">
+				<button class="btn-sec btn-picker-cancel" type="button" onclick="closePicker()">Cancel</button>
+				<button class="btn-sec btn-picker-new" type="button" onclick="createNewFolder()" title="Create folder in current directory">+ New Folder</button>
+				<button class="btn-primary btn-picker-select" type="button" onclick="chooseCurrentDir()">Select Folder</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- History Modal -->
+	<div class="overlay" id="historyModal" onclick="if(event.target===this) closeHistory()">
+		<div class="dialog modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="historyTitle">Extraction History</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closeHistory()">✕</button>
+			</div>
+			<div class="dialog-body" id="historyList"></div>
+			<div class="dialog-foot" style="justify-content: space-between;">
+				<button class="btn-sec" type="button" onclick="clearHistory()" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">Clear History</button>
+				<button class="btn-sec" type="button" style="padding: 8px 14px;" onclick="closeHistory()">Close</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Diagnostics & Logs Modal -->
+	<div class="overlay" id="logsModal" style="z-index: 120;" onclick="if(event.target===this) closeLogsModal()">
+		<div class="dialog modal" role="dialog" aria-modal="true" aria-labelledby="logsTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="logsTitle">Diagnostics & Logs</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closeLogsModal()">✕</button>
+			</div>
+			<div class="logs-path-header" style="padding: 8px 16px; background: var(--bg); border-bottom: 1px solid var(--border); font-size: 0.76rem; color: var(--text-dim); display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; overflow: hidden;">
+				<span id="logsPathDisplay" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; word-break: break-all; flex: 1;">Loading log path...</span>
+				<span id="logsStatusNote" style="font-size: 0.72rem; color: var(--accent); flex-shrink: 0; white-space: nowrap;"></span>
+			</div>
+			<div class="dialog-body" style="padding: 12px; background: #090d16; display: flex; flex-direction: column; flex: 1; min-height: 0;">
+				<pre id="logsContent" style="margin: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 0.74rem; line-height: 1.45; color: #cbd5e1; white-space: pre-wrap; word-break: break-all; flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #334155 transparent;"></pre>
+			</div>
+			<div class="dialog-foot dialog-foot-grid" id="logsModalFoot">
+				<button class="btn-sec btn-clear-logs" type="button" onclick="clearLogs()" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.3);">Clear Logs</button>
+				<button class="btn-sec" type="button" onclick="fetchLogs()">Refresh</button>
+				<button class="btn-sec" type="button" id="copyReportBtn" onclick="copyBugReport()">Copy Report</button>
+				<button class="btn-primary" type="button" onclick="closeLogsModal()">Close</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Reusable Dark Confirmation Modal -->
+	<div class="overlay" id="confirmModal" style="z-index: 130;" onclick="if(event.target===this) closeConfirmModal(false)">
+		<div class="dialog" style="max-width: 420px;" role="dialog" aria-modal="true" aria-labelledby="confirmModalTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="confirmModalTitle">Confirm Action</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closeConfirmModal(false)">✕</button>
+			</div>
+			<div class="dialog-body">
+				<p style="margin: 0; color: var(--text-muted); line-height: 1.5;" id="confirmModalMsg"></p>
+			</div>
+			<div class="dialog-foot">
+				<button class="btn-sec" type="button" style="padding: 8px 14px;" id="confirmModalCancelBtn" onclick="closeConfirmModal(false)">Cancel</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 16px;" id="confirmModalOkBtn" onclick="closeConfirmModal(true)">Confirm</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Reusable Dark Prompt Input Modal -->
+	<div class="overlay" id="promptModal" style="z-index: 130;" onclick="if(event.target===this) closePromptModal(null)">
+		<div class="dialog" style="max-width: 440px;" role="dialog" aria-modal="true" aria-labelledby="promptModalTitle">
+			<div class="sheet-handle"></div>
+			<div class="dialog-head">
+				<span id="promptModalTitle">Input Required</span>
+				<button class="close-x" type="button" aria-label="Close dialog" onclick="closePromptModal(null)">✕</button>
+			</div>
+			<div class="dialog-body">
+				<p style="margin: 0 0 12px 0; color: var(--text-muted); line-height: 1.5;" id="promptModalMsg"></p>
+				<input type="text" id="promptModalInput" style="font-size: 0.85rem;" onkeydown="if(event.key==='Enter') submitPromptModal()">
+			</div>
+			<div class="dialog-foot">
+				<button class="btn-sec" type="button" style="padding: 8px 14px;" onclick="closePromptModal(null)">Cancel</button>
+				<button class="btn-primary" type="button" style="flex: initial; padding: 8px 16px;" onclick="submitPromptModal()">Submit</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Toast Notification Container -->
+	<div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+	<script>
+		// Non-blocking Dark UI Toast Notification System
+		function showToast(message, type = 'info', duration = 3500) {
+			const container = document.getElementById('toastContainer');
+			if (!container) return;
+			const toast = document.createElement('div');
+			toast.className = 'toast toast-' + type;
+
+			const iconSpan = document.createElement('span');
+			iconSpan.style.fontWeight = 'bold';
+			if (type === 'success') {
+				iconSpan.style.color = 'var(--success)';
+				iconSpan.textContent = '✓';
+			} else if (type === 'error') {
+				iconSpan.style.color = 'var(--danger)';
+				iconSpan.textContent = '✕';
+			} else {
+				iconSpan.style.color = 'var(--accent)';
+				iconSpan.textContent = 'ℹ';
+			}
+
+			const textSpan = document.createElement('span');
+			textSpan.textContent = type === 'error' ? translatePlainErrorMessage(message) : String(message);
+
+			toast.appendChild(iconSpan);
+			toast.appendChild(textSpan);
+			container.appendChild(toast);
+
+			setTimeout(() => {
+				toast.classList.add('toast-out');
+				setTimeout(() => {
+					if (toast.parentNode) toast.parentNode.removeChild(toast);
+				}, 220);
+			}, duration);
+		}
+
+		// Plain-Language Error Translation for non-technical users
+		function translatePlainErrorMessage(rawMsg) {
+			if (!rawMsg) return '';
+			const str = String(rawMsg);
+			const lower = str.toLowerCase();
+			if (lower.includes('webpage') || lower.includes('html') || lower.includes('<!doctype') || lower.includes('<html')) {
+				return "This link opened a webpage instead of a direct archive file. Copy the direct download link and try again.";
+			}
+			if (lower.includes('401') || lower.includes('403') || lower.includes('410') || lower.includes('expired') || lower.includes('forbidden') || lower.includes('unauthorized') || lower.includes('blocked')) {
+				return "Download link expired or blocked by host. Refresh the link and click Retry to resume.";
+			}
+			if (lower.includes('not enough free storage') || lower.includes('insufficient disk space') || lower.includes('storage full') || lower.includes('no space left') || lower.includes('enospc') || lower.includes('low disk')) {
+				return "Not enough free storage space. Free up space on your device and click Retry.";
+			}
+			return str;
+		}
+
+		// Thermal Quick-Action Banner state & actions
+		let thermalBannerDismissed = false;
+		function applyThermalBalancedCap() {
+			setLiveSpeedLimit(15);
+			dismissThermalBanner();
+			dismissThermalAlertModal(true);
+			showToast('Speed cap set to Balanced (15 MB/s)', 'info');
+		}
+
+		function dismissThermalBanner() {
+			thermalBannerDismissed = true;
+			const b = document.getElementById('thermalQuickBanner');
+			if (b) b.style.display = 'none';
+		}
+
+		// Non-blocking Smart Thermal & Memory Alert Modal state & actions
+		let thermalModalShownThisSession = false;
+		function dismissThermalAlertModal(suppressForSession) {
+			const m = document.getElementById('thermalAlertModal');
+			if (m) m.classList.remove('open');
+			if (suppressForSession) {
+				thermalModalShownThisSession = true;
+			}
+		}
+
+		function throttleFromThermalModal() {
+			setLiveSpeedLimit(10);
+			dismissThermalAlertModal(true);
+			showToast('Speed throttled to 10 MB/s for cooling', 'info');
+		}
+
+		// GitHub Release Update Checker
+		let latestReleaseUrl = "https://github.com/musakpg/directcrate/releases";
+
+		function openReleasePage() {
+			if (window.AndroidBridge && typeof window.AndroidBridge.openExternalUrl === 'function') {
+				try {
+					window.AndroidBridge.openExternalUrl(latestReleaseUrl);
+					return;
+				} catch (e) {}
+			}
+			window.open(latestReleaseUrl, '_blank', 'noopener,noreferrer');
+		}
+
+		function dismissUpdateBanner() {
+			const banner = document.getElementById('updateBanner');
+			if (banner) banner.style.display = 'none';
+		}
+
+		async function checkForUpdatesSilent() {
+			try {
+				const resp = await fetch('/api/check-update');
+				if (!resp.ok) return;
+				const data = await resp.json();
+				if (data && data.update_available) {
+					if (data.release_url) latestReleaseUrl = data.release_url;
+					const banner = document.getElementById('updateBanner');
+					const verTag = document.getElementById('updateVersionTag');
+					if (banner && verTag) {
+						verTag.textContent = data.latest_version || 'New Version';
+						banner.style.display = 'flex';
+					}
+					const statusEl = document.getElementById('manualUpdateStatus');
+					if (statusEl) {
+						statusEl.textContent = 'Update Available (' + (data.latest_version || '') + ')';
+						statusEl.style.color = 'var(--accent)';
+					}
+				}
+			} catch (e) {}
+		}
+
+		async function checkForUpdatesManual() {
+			const btn = document.getElementById('manualCheckUpdateBtn');
+			const statusEl = document.getElementById('manualUpdateStatus');
+			if (btn) btn.disabled = true;
+			if (statusEl) {
+				statusEl.textContent = 'Checking...';
+				statusEl.style.color = 'var(--text-dim)';
+			}
+			try {
+				const resp = await fetch('/api/check-update');
+				const data = await resp.json();
+				if (data && data.update_available) {
+					if (data.release_url) latestReleaseUrl = data.release_url;
+					if (statusEl) {
+						statusEl.textContent = 'Update Available (' + (data.latest_version || '') + ')';
+						statusEl.style.color = 'var(--accent)';
+					}
+					showToast('Update available: ' + (data.latest_version || ''), 'success');
+					const banner = document.getElementById('updateBanner');
+					const verTag = document.getElementById('updateVersionTag');
+					if (banner && verTag) {
+						verTag.textContent = data.latest_version || 'New Version';
+						banner.style.display = 'flex';
+					}
+				} else if (data && data.error) {
+					if (statusEl) {
+						statusEl.textContent = 'Check failed: ' + data.error;
+						statusEl.style.color = 'var(--danger)';
+					}
+					showToast('Update check failed: ' + data.error, 'error');
+				} else {
+					if (statusEl) {
+						statusEl.textContent = 'You are on the latest version (v1.0.0)';
+						statusEl.style.color = 'var(--text-muted)';
+					}
+					showToast('DirectCrate is up to date (v1.0.0)', 'info');
+				}
+			} catch (e) {
+				if (statusEl) {
+					statusEl.textContent = 'Check failed (offline)';
+					statusEl.style.color = 'var(--danger)';
+				}
+				showToast('Update check failed: network error', 'error');
+			} finally {
+				if (btn) btn.disabled = false;
+			}
+		}
+
+		// Reusable Dark-Themed Confirmation Modal (Promise-based)
+		let confirmModalResolver = null;
+		function showConfirmModal({ title = 'Confirm Action', message = 'Are you sure?', okText = 'Confirm', cancelText = 'Cancel', danger = false } = {}) {
+			return new Promise((resolve) => {
+				confirmModalResolver = resolve;
+				document.getElementById('confirmModalTitle').textContent = title;
+				document.getElementById('confirmModalMsg').textContent = message;
+				const okBtn = document.getElementById('confirmModalOkBtn');
+				const cancelBtn = document.getElementById('confirmModalCancelBtn');
+				okBtn.textContent = okText;
+				cancelBtn.textContent = cancelText;
+				if (danger) {
+					okBtn.style.background = 'var(--danger)';
+					okBtn.style.color = '#ffffff';
+				} else {
+					okBtn.style.background = 'var(--primary)';
+					okBtn.style.color = 'var(--primary-text)';
+				}
+				document.getElementById('confirmModal').classList.add('open');
+				okBtn.focus();
+			});
+		}
+
+		function closeConfirmModal(result) {
+			document.getElementById('confirmModal').classList.remove('open');
+			if (confirmModalResolver) {
+				const r = confirmModalResolver;
+				confirmModalResolver = null;
+				r(result);
+			}
+		}
+
+		// Reusable Dark-Themed Prompt Modal (Promise-based)
+		let promptModalResolver = null;
+		function showPromptModal({ title = 'Input Required', message = 'Please enter a value:', defaultValue = '', placeholder = '' } = {}) {
+			return new Promise((resolve) => {
+				promptModalResolver = resolve;
+				document.getElementById('promptModalTitle').textContent = title;
+				document.getElementById('promptModalMsg').textContent = message;
+				const input = document.getElementById('promptModalInput');
+				input.placeholder = placeholder;
+				input.value = defaultValue;
+				document.getElementById('promptModal').classList.add('open');
+				input.focus();
+				input.select();
+			});
+		}
+
+		function submitPromptModal() {
+			const val = document.getElementById('promptModalInput').value;
+			closePromptModal(val);
+		}
+
+		function closePromptModal(result) {
+			document.getElementById('promptModal').classList.remove('open');
+			if (promptModalResolver) {
+				const r = promptModalResolver;
+				promptModalResolver = null;
+				r(result);
+			}
+		}
+
+		// Global safety overrides ensuring zero native browser/WebView dialogs can appear
+		window.alert = function(msg) {
+			showToast(String(msg), 'info');
+		};
+		window.confirm = function(msg) {
+			console.warn('Native confirm called synchronously; use showConfirmModal instead:', msg);
+			return false;
+		};
+		window.prompt = function(msg, defaultText) {
+			console.warn('Native prompt called synchronously; use showPromptModal instead:', msg);
+			return null;
+		};
+
+		// Android hardware Back button handler: closes active UI modals first, returning true if handled.
+		window.handleAndroidBack = function() {
+			const modals = [
+				{ id: 'confirmModal', fn: () => closeConfirmModal(false) },
+				{ id: 'promptModal', fn: () => closePromptModal(null) },
+				{ id: 'thermalAlertModal', fn: () => dismissThermalAlertModal(false) },
+				{ id: 'logsModal', fn: closeLogsModal },
+				{ id: 'conflictModal', fn: closeConflictModal },
+				{ id: 'abortModal', fn: closeAbortModal },
+				{ id: 'passwordModal', fn: closePasswordModal },
+				{ id: 'resumeUrlModal', fn: closeResumeUrlModal },
+				{ id: 'pickerModal', fn: closePicker },
+				{ id: 'settingsModal', fn: closeSettings },
+				{ id: 'historyModal', fn: closeHistory }
+			];
+			for (const m of modals) {
+				const el = document.getElementById(m.id);
+				if (el && el.classList.contains('open')) {
+					m.fn();
+					return true;
+				}
+			}
+			const openDropdown = document.querySelector('.custom-select-wrapper.open');
+			if (openDropdown) {
+				closeAllCustomSelects();
+				return true;
+			}
+			const inspectPanel = document.getElementById('inspectPanel');
+			if (inspectPanel && inspectPanel.classList.contains('active')) {
+				inspectPanel.classList.remove('active');
+				return true;
+			}
+			return false;
+		};
+
+		async function clearHistory() {
+			const confirmed = await showConfirmModal({
+				title: 'Clear History',
+				message: 'Clear all recorded extraction history?',
+				okText: 'Clear History',
+				danger: true
+			});
+			if (!confirmed) return;
+			try {
+				const res = await fetch('/api/history', { method: 'DELETE' });
+				if (!res.ok) throw new Error('HTTP ' + res.status);
+				await openHistory();
+				showToast('History cleared', 'success');
+			} catch (e) {
+				showToast('Failed to clear history: ' + e, 'error');
+			}
+		}
+
+		async function resetSettings() {
+			const confirmed = await showConfirmModal({
+				title: 'Reset Settings to Defaults',
+				message: 'Reset all configuration, network options, and preferences to default values?',
+				okText: 'Reset to Defaults',
+				danger: true
+			});
+			if (!confirmed) return;
+			try {
+				try {
+					await fetch('/api/settings', { method: 'DELETE' });
+				} catch (e) {}
+				localStorage.removeItem(PREF_KEY);
+				localStorage.removeItem(THEME_STORAGE_KEY);
+				localStorage.removeItem('theme');
+				window.location.reload();
+			} catch (e) {
+				showToast('Failed to reset settings: ' + e, 'error');
+			}
+		}
+
+		let activeBrowsePath = "";
+		let pickerTarget = "main";
+		let lastCompletedPath = "";
+		let systemDefaultDest = "";
+		let activeLogPath = "";
+		let systemOS = "";
+		let systemArch = "";
+		let directcrateVersion = "v1.0.0";
+		let isExtractionActive = false;
+		let lastNotificationUpdate = 0;
+		let lastNotificationActive = false;
+		let inspectedFiles = [];
+		let speedHistory = new Array(60).fill(0);
+
+		window.addEventListener('beforeunload', (e) => {
+			if (isExtractionActive) {
+				const msg = 'This will abort your download.';
+				e.preventDefault();
+				e.returnValue = msg;
+				return msg;
+			}
+		});
+
+		window.addEventListener('pagehide', () => {
+			if (isExtractionActive && navigator.sendBeacon) {
+				navigator.sendBeacon('/cancel');
+			}
+		});
+
+		const PREF_KEY = "directcrate_prefs_v1";
+		const THEME_STORAGE_KEY = "directcrate_theme";
+
+		function getStoredThemePreference() {
+			try {
+				const direct = localStorage.getItem(THEME_STORAGE_KEY);
+				if (direct === 'dark' || direct === 'light' || direct === 'system') {
+					return direct;
+				}
+				const raw = localStorage.getItem(PREF_KEY);
+				if (raw) {
+					const p = JSON.parse(raw);
+					if (p && (p.theme === 'dark' || p.theme === 'light' || p.theme === 'system')) {
+						return p.theme;
+					}
+				}
+			} catch (e) {}
+			return 'system';
+		}
+
+		function setStoredThemePreference(theme) {
+			try {
+				localStorage.setItem(THEME_STORAGE_KEY, theme);
+			} catch (e) {}
+		}
+
+		function resolveActiveIsDark(themePreference) {
+			if (themePreference === 'dark') return true;
+			if (themePreference === 'light') return false;
+			return Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+		}
+
+		function notifyAndroidTheme(isDark) {
+			try {
+				if (window.AndroidTheme && typeof window.AndroidTheme.onThemeChanged === 'function') {
+					window.AndroidTheme.onThemeChanged(Boolean(isDark));
+				}
+			} catch (e) {
+				console.warn('Failed to notify AndroidTheme host:', e);
+			}
+		}
+
+		function applyTheme(theme) {
+			const validTheme = (theme === 'dark' || theme === 'light' || theme === 'system') ? theme : 'system';
+			setStoredThemePreference(validTheme);
+
+			if (validTheme === 'system') {
+				document.documentElement.removeAttribute('data-theme');
+			} else {
+				document.documentElement.setAttribute('data-theme', validTheme);
+			}
+
+			const isDark = resolveActiveIsDark(validTheme);
+			notifyAndroidTheme(isDark);
+			drawSpeedSparkline();
+		}
+
+		function onThemeSelectChange() {
+			const sel = document.getElementById('prefTheme');
+			if (!sel) return;
+			applyTheme(sel.value);
+			savePrefs();
+		}
+
+		// Listen to system OS color scheme changes in real time
+		if (window.matchMedia) {
+			const colorSchemeMedia = window.matchMedia('(prefers-color-scheme: dark)');
+			const handleSystemThemeChange = (e) => {
+				const currentPref = getStoredThemePreference();
+				if (currentPref === 'system') {
+					const isDark = e.matches;
+					notifyAndroidTheme(isDark);
+					drawSpeedSparkline();
+				}
+			};
+			if (colorSchemeMedia.addEventListener) {
+				colorSchemeMedia.addEventListener('change', handleSystemThemeChange);
+			} else if (colorSchemeMedia.addListener) {
+				colorSchemeMedia.addListener(handleSystemThemeChange);
+			}
+		}
+
+		function drawSpeedSparkline() {
+			const canvas = document.getElementById('speedCanvas');
+			if (!canvas) return;
+			const ctx = canvas.getContext('2d');
+			const dpr = window.devicePixelRatio || 1;
+			const rect = canvas.getBoundingClientRect();
+			const cssW = rect.width || canvas.offsetWidth || 400;
+			const cssH = 44;
+
+			const targetW = Math.round(cssW * dpr);
+			const targetH = Math.round(cssH * dpr);
+			if (canvas.width !== targetW || canvas.height !== targetH) {
+				canvas.width = targetW;
+				canvas.height = targetH;
+			}
+
+			ctx.save();
+			ctx.scale(dpr, dpr);
+			ctx.clearRect(0, 0, cssW, cssH);
+
+			const maxVal = Math.max(...speedHistory, 5);
+			const stepX = cssW / (speedHistory.length - 1);
+
+			const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#10b981';
+			ctx.strokeStyle = accentColor;
+			ctx.lineWidth = 1.75;
+			ctx.lineJoin = 'round';
+			ctx.beginPath();
+
+			speedHistory.forEach((val, idx) => {
+				const x = idx * stepX;
+				const y = cssH - 4 - ((val / maxVal) * (cssH - 10));
+				if (idx === 0) ctx.moveTo(x, y);
+				else ctx.lineTo(x, y);
+			});
+			ctx.stroke();
+
+			// Subtle area fill under line
+			ctx.lineTo(cssW, cssH);
+			ctx.lineTo(0, cssH);
+			ctx.closePath();
+			const isDark = resolveActiveIsDark(getStoredThemePreference());
+			ctx.fillStyle = isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(5, 150, 105, 0.12)';
+			ctx.fill();
+			ctx.restore();
+
+			const nonZero = speedHistory.filter(v => v > 0);
+			const avg = nonZero.length > 0 ? (nonZero.reduce((a, b) => a + b, 0) / nonZero.length).toFixed(1) : '0.0';
+			const avgLabel = document.getElementById('avgSpeedLabel');
+			if (avgLabel) avgLabel.textContent = 'Avg: ' + avg + ' MB/s';
+		}
+
+		if (window.ResizeObserver) {
+			const speedCvObserver = new ResizeObserver(() => {
+				requestAnimationFrame(drawSpeedSparkline);
+			});
+			window.addEventListener('DOMContentLoaded', () => {
+				const cv = document.getElementById('speedCanvas');
+				if (cv) speedCvObserver.observe(cv);
+			});
+		}
+
+		function getActiveURLValue() {
+			const mode = document.getElementById('urlMode').value;
+			if (mode === 'multipart') {
+				return document.getElementById('urlMulti').value.trim();
+			}
+			return document.getElementById('urlSingle').value.trim();
+		}
+
+		function setIncomingURLText(raw) {
+			const clean = raw.trim();
+			if (!clean) return;
+			if (clean.includes('\n')) {
+				document.getElementById('urlMulti').value = clean;
+				document.getElementById('urlMode').value = 'multipart';
+				toggleUrlMode();
+			} else {
+				document.getElementById('urlMode').value = 'single';
+				toggleUrlMode();
+				const singleEl = document.getElementById('urlSingle');
+				singleEl.value = clean;
+				singleEl.focus();
+			}
+		}
+
+		function toggleUrlMode() {
+			const mode = document.getElementById('urlMode').value;
+			const singleRow = document.getElementById('singleUrlRow');
+			const multiRow = document.getElementById('multiUrlRow');
+			const singleEl = document.getElementById('urlSingle');
+			const multiEl = document.getElementById('urlMulti');
+
+			if (mode === 'multipart') {
+				if (singleEl.value.trim() && !multiEl.value.trim()) {
+					multiEl.value = singleEl.value.trim();
+				}
+				singleRow.style.display = 'none';
+				multiRow.style.display = 'flex';
+				updatePartBadge();
+				multiEl.focus();
+			} else {
+				const firstLine = multiEl.value.split('\n').map(s => s.trim()).filter(Boolean)[0] || '';
+				if (firstLine && !singleEl.value.trim()) {
+					singleEl.value = firstLine;
+				}
+				multiRow.style.display = 'none';
+				singleRow.style.display = 'flex';
+				document.getElementById('partBadge').textContent = '';
+				singleEl.focus();
+			}
+			syncAllCustomSelects();
+		}
+
+		function handleSingleInput(val) {
+			if (val.includes('\n')) {
+				document.getElementById('urlMulti').value = val.trim();
+				document.getElementById('urlSingle').value = '';
+				document.getElementById('urlMode').value = 'multipart';
+				toggleUrlMode();
+			}
+		}
+
+		function updatePartBadge() {
+			const val = document.getElementById('urlMulti').value;
+			const lines = val.split('\n').map(s => s.trim()).filter(Boolean);
+			const badge = document.getElementById('partBadge');
+			badge.textContent = lines.length > 0 ? '(' + lines.length + ' parts)' : '';
+		}
+
+		let currentQueue = [];
+
+		async function loadPrefs() {
+			let serverSettings = null;
+			try {
+				const res = await fetch('/api/settings');
+				if (res.ok) {
+					serverSettings = await res.json();
+				}
+			} catch (e) {}
+
+			let p = {};
+			let raw = null;
+			try { raw = localStorage.getItem(PREF_KEY); } catch (e) {}
+			if (raw) {
+				try { p = JSON.parse(raw); } catch (e) {}
+			}
+
+			if (serverSettings) {
+				if (serverSettings.default_dest !== undefined && serverSettings.default_dest !== '') p.defaultDest = serverSettings.default_dest;
+				if (serverSettings.workers !== undefined && serverSettings.workers > 0) p.parallelConns = serverSettings.workers;
+				if (serverSettings.buffer_mb !== undefined && serverSettings.buffer_mb > 0) p.bufferSizeMB = serverSettings.buffer_mb;
+				if (serverSettings.conflict_mode !== undefined && serverSettings.conflict_mode !== '') p.conflictMode = serverSettings.conflict_mode;
+				if (serverSettings.exclude_patterns !== undefined && serverSettings.exclude_patterns !== '') p.excludePatterns = serverSettings.exclude_patterns;
+				if (serverSettings.flatten_single_root !== undefined) p.flattenSingleRoot = serverSettings.flatten_single_root;
+				if (serverSettings.speed_limit_mbs !== undefined) p.speedLimitMBs = serverSettings.speed_limit_mbs;
+				if (serverSettings.power_action !== undefined && serverSettings.power_action !== '') p.powerAction = serverSettings.power_action;
+				if (serverSettings.play_sound !== undefined) p.playSound = serverSettings.play_sound;
+				if (serverSettings.desktop_notify !== undefined) p.desktopNotify = serverSettings.desktop_notify;
+				if (serverSettings.auto_subfolder !== undefined) p.autoSubfolder = serverSettings.auto_subfolder;
+				if (serverSettings.prevent_idle !== undefined) p.preventIdle = serverSettings.prevent_idle;
+				if (serverSettings.live_progress_notifications !== undefined) p.liveProgressNotifications = serverSettings.live_progress_notifications;
+				if (serverSettings.theme !== undefined && serverSettings.theme !== '') p.theme = serverSettings.theme;
+
+				const hasServerCustom = serverSettings.default_dest || serverSettings.workers > 0;
+				if (!hasServerCustom && raw) {
+					setTimeout(savePrefs, 150);
+				}
+			}
+
+			if (document.getElementById('prefAutoSubfolder')) document.getElementById('prefAutoSubfolder').checked = p.autoSubfolder !== false;
+			if (document.getElementById('prefFlattenSingleRoot')) document.getElementById('prefFlattenSingleRoot').checked = p.flattenSingleRoot !== false;
+			if (document.getElementById('prefPlaySound')) document.getElementById('prefPlaySound').checked = p.playSound !== false;
+			if (document.getElementById('prefPreventIdle')) document.getElementById('prefPreventIdle').checked = p.preventIdle !== false;
+			if (document.getElementById('prefDesktopNotify')) document.getElementById('prefDesktopNotify').checked = p.desktopNotify !== false;
+			if (document.getElementById('prefLiveProgress')) document.getElementById('prefLiveProgress').checked = p.liveProgressNotifications !== false;
+			if (document.getElementById('prefAddSteam')) document.getElementById('prefAddSteam').checked = p.addSteam === true;
+
+			const powerAction = p.powerAction || (p.sleepOnFinish ? 'sleep' : 'none');
+			if (document.getElementById('prefPowerAction')) document.getElementById('prefPowerAction').value = powerAction;
+
+			const conflictMode = p.conflictMode || 'ask';
+			if (document.getElementById('prefConflictMode')) document.getElementById('prefConflictMode').value = conflictMode;
+
+			const speedLimit = String(p.speedLimitMBs || 0);
+			if (document.getElementById('prefSpeedLimit')) document.getElementById('prefSpeedLimit').value = speedLimit;
+			if (document.getElementById('liveSpeedLimit')) document.getElementById('liveSpeedLimit').value = speedLimit;
+			if (document.getElementById('prefParallelConns')) document.getElementById('prefParallelConns').value = String(p.parallelConns || 4);
+			if (document.getElementById('prefBufferSize')) document.getElementById('prefBufferSize').value = String(p.bufferSizeMB || 4);
+			if (document.getElementById('prefExcludePatterns')) document.getElementById('prefExcludePatterns').value = p.excludePatterns || '';
+
+			const theme = getStoredThemePreference() || p.theme || 'system';
+			if (document.getElementById('prefTheme')) document.getElementById('prefTheme').value = theme;
+			applyTheme(theme);
+
+			if (p.defaultDest) {
+				if (document.getElementById('prefDefaultDest')) document.getElementById('prefDefaultDest').value = p.defaultDest;
+				if (document.getElementById('dest') && !document.getElementById('dest').value.trim()) {
+					document.getElementById('dest').value = p.defaultDest;
+				}
+			}
+			syncAllCustomSelects();
+		}
+
+		async function savePrefs() {
+			const speedVal = parseInt(document.getElementById('prefSpeedLimit').value, 10) || 0;
+			const themeVal = document.getElementById('prefTheme') ? document.getElementById('prefTheme').value : getStoredThemePreference();
+			setStoredThemePreference(themeVal);
+			const prefs = {
+				autoSubfolder: document.getElementById('prefAutoSubfolder') ? document.getElementById('prefAutoSubfolder').checked : true,
+				flattenSingleRoot: document.getElementById('prefFlattenSingleRoot') ? document.getElementById('prefFlattenSingleRoot').checked : true,
+				playSound: document.getElementById('prefPlaySound') ? document.getElementById('prefPlaySound').checked : true,
+				preventIdle: document.getElementById('prefPreventIdle') ? document.getElementById('prefPreventIdle').checked : true,
+				desktopNotify: document.getElementById('prefDesktopNotify') ? document.getElementById('prefDesktopNotify').checked : true,
+				liveProgressNotifications: document.getElementById('prefLiveProgress') ? document.getElementById('prefLiveProgress').checked : true,
+				addSteam: document.getElementById('prefAddSteam') ? document.getElementById('prefAddSteam').checked : false,
+				powerAction: document.getElementById('prefPowerAction') ? document.getElementById('prefPowerAction').value || 'none' : 'none',
+				conflictMode: document.getElementById('prefConflictMode') ? document.getElementById('prefConflictMode').value || 'ask' : 'ask',
+				speedLimitMBs: speedVal,
+				parallelConns: parseInt(document.getElementById('prefParallelConns').value, 10) || 4,
+				bufferSizeMB: parseInt(document.getElementById('prefBufferSize').value, 10) || 4,
+				excludePatterns: document.getElementById('prefExcludePatterns') ? document.getElementById('prefExcludePatterns').value.trim() : '',
+				theme: themeVal,
+				defaultDest: document.getElementById('prefDefaultDest') ? document.getElementById('prefDefaultDest').value.trim() : ''
+			};
+			try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) {}
+			if (document.getElementById('liveSpeedLimit')) document.getElementById('liveSpeedLimit').value = String(speedVal);
+			applyTheme(prefs.theme);
+			syncAllCustomSelects();
+			if (prefs.defaultDest && !document.getElementById('dest').value.trim()) {
+				document.getElementById('dest').value = prefs.defaultDest;
+			}
+			try {
+				await fetch('/api/settings', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({
+						default_dest: prefs.defaultDest,
+						workers: prefs.parallelConns,
+						buffer_mb: prefs.bufferSizeMB,
+						conflict_mode: prefs.conflictMode,
+						exclude_patterns: prefs.excludePatterns,
+						flatten_single_root: prefs.flattenSingleRoot,
+						speed_limit_mbs: prefs.speedLimitMBs,
+						power_action: prefs.powerAction,
+						play_sound: prefs.playSound,
+						desktop_notify: prefs.desktopNotify,
+						live_progress_notifications: prefs.liveProgressNotifications,
+						auto_subfolder: prefs.autoSubfolder,
+						prevent_idle: prefs.preventIdle,
+						theme: prefs.theme
+					})
+				});
+			} catch (e) {}
+		}
+
+		async function setLiveSpeedLimit(val) {
+			const speedLimit = parseInt(val, 10) || 0;
+			document.getElementById('liveSpeedLimit').value = String(speedLimit);
+			document.getElementById('prefSpeedLimit').value = String(speedLimit);
+			syncAllCustomSelects();
+			savePrefs();
+			try {
+				await fetch('/api/speed-limit', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({speed_limit_mbs: speedLimit})
+				});
+			} catch (e) {}
+		}
+
+		function renderQueue(items) {
+			currentQueue = Array.isArray(items) ? items : [];
+			const panel = document.getElementById('queuePanel');
+			const listEl = document.getElementById('queueList');
+			const countEl = document.getElementById('queueCount');
+			if (currentQueue.length === 0) {
+				panel.classList.remove('active');
+				listEl.innerHTML = '';
+				countEl.textContent = '0 queued';
+				return;
+			}
+
+			countEl.textContent = currentQueue.length + ' queued';
+			listEl.innerHTML = '';
+			currentQueue.forEach(item => {
+				const row = document.createElement('div');
+				row.className = 'queue-item';
+
+				const meta = document.createElement('div');
+				meta.className = 'queue-meta';
+				const nameEl = document.createElement('div');
+				nameEl.className = 'queue-name';
+				nameEl.textContent = item.label || 'Queued Archive';
+				const destEl = document.createElement('div');
+				destEl.className = 'queue-dest';
+				destEl.textContent = item.target_folder || '';
+				meta.appendChild(nameEl);
+				meta.appendChild(destEl);
+
+				const rmBtn = document.createElement('button');
+				rmBtn.className = 'queue-rm';
+				rmBtn.type = 'button';
+				rmBtn.title = 'Remove from queue';
+				rmBtn.textContent = '✕';
+				rmBtn.onclick = () => removeQueueItem(item.id);
+
+				row.appendChild(meta);
+				row.appendChild(rmBtn);
+				listEl.appendChild(row);
+			});
+			panel.classList.add('active');
+		}
+
+		async function refreshQueue() {
+			try {
+				const res = await fetch('/api/queue');
+				if (res.ok) {
+					renderQueue(await res.json());
+				}
+			} catch (e) {}
+		}
+
+		// Show or hide desktop-only settings controls based on whether running natively on Android
+		function applyPlatformSettingsVisibility(isAndroid) {
+			const desktopOnlyIds = [
+				'prefPowerActionField',
+				'prefDesktopNotifyRow',
+				'prefPreventIdleRow',
+				'prefPlaySoundRow',
+				'addSteamRow'
+			];
+			desktopOnlyIds.forEach(id => {
+				const el = document.getElementById(id);
+				if (el) el.style.display = isAndroid ? 'none' : '';
+			});
+			if (isAndroid) {
+				const steamChk = document.getElementById('prefAddSteam');
+				if (steamChk) steamChk.checked = false;
+				const steamBtn = document.getElementById('addSteamBtn');
+				if (steamBtn) steamBtn.style.display = 'none';
+				const exeSec = document.getElementById('exeSection');
+				if (exeSec) exeSec.style.display = 'none';
+			}
+		}
+
+		// Custom theme-matched dropdown component
+		function setupCustomSelect(selectId, options = {}) {
+			const select = document.getElementById(selectId);
+			if (!select || select.dataset.customized === 'true') return;
+
+			select.dataset.customized = 'true';
+			select.style.display = 'none';
+
+			const wrapper = document.createElement('div');
+			wrapper.className = 'custom-select-wrapper';
+			if (options.inline) wrapper.classList.add('inline-select');
+			if (options.compact) wrapper.classList.add('compact-select');
+			wrapper.id = selectId + '_custom';
+
+			const trigger = document.createElement('button');
+			trigger.type = 'button';
+			trigger.className = 'custom-select-trigger';
+			trigger.setAttribute('role', 'combobox');
+			trigger.setAttribute('aria-haspopup', 'listbox');
+			trigger.setAttribute('aria-expanded', 'false');
+			trigger.setAttribute('aria-controls', selectId + '_menu');
+
+			const labelSpan = document.createElement('span');
+			labelSpan.className = 'custom-select-label';
+
+			const arrowSpan = document.createElement('span');
+			arrowSpan.className = 'custom-select-arrow';
+			arrowSpan.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+
+			trigger.appendChild(labelSpan);
+			trigger.appendChild(arrowSpan);
+
+			const menu = document.createElement('div');
+			menu.className = 'custom-select-menu';
+			menu.id = selectId + '_menu';
+			menu.setAttribute('role', 'listbox');
+
+			function rebuildOptions() {
+				menu.innerHTML = '';
+				let selectedText = '';
+				Array.from(select.options).forEach((opt) => {
+					const item = document.createElement('div');
+					item.className = 'custom-select-option';
+					item.setAttribute('role', 'option');
+					item.setAttribute('tabindex', '0');
+					item.dataset.value = opt.value;
+					item.textContent = opt.textContent;
+					if (opt.value === select.value) {
+						item.classList.add('selected');
+						item.setAttribute('aria-selected', 'true');
+						selectedText = opt.textContent;
+					} else {
+						item.setAttribute('aria-selected', 'false');
+					}
+					item.addEventListener('click', (e) => {
+						e.stopPropagation();
+						if (select.value !== opt.value) {
+							select.value = opt.value;
+							select.dispatchEvent(new Event('change', { bubbles: true }));
+						}
+						syncUI();
+						closeMenu();
+						trigger.focus();
+					});
+					item.addEventListener('keydown', (e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							e.preventDefault();
+							item.click();
+						} else if (e.key === 'Escape') {
+							closeMenu();
+							trigger.focus();
+						}
+					});
+					menu.appendChild(item);
+				});
+				labelSpan.textContent = selectedText || (select.options[0] ? select.options[0].textContent : select.value);
+			}
+
+			function syncUI() {
+				let selectedText = '';
+				menu.querySelectorAll('.custom-select-option').forEach(item => {
+					if (item.dataset.value === select.value) {
+						item.classList.add('selected');
+						item.setAttribute('aria-selected', 'true');
+						selectedText = item.textContent;
+					} else {
+						item.classList.remove('selected');
+						item.setAttribute('aria-selected', 'false');
+					}
+				});
+				labelSpan.textContent = selectedText || (select.selectedOptions[0] ? select.selectedOptions[0].textContent : select.value);
+			}
+
+			function openMenu() {
+				closeAllCustomSelects();
+				wrapper.classList.add('open');
+				trigger.setAttribute('aria-expanded', 'true');
+			}
+
+			function closeMenu() {
+				wrapper.classList.remove('open');
+				trigger.setAttribute('aria-expanded', 'false');
+			}
+
+			trigger.addEventListener('click', (e) => {
+				e.stopPropagation();
+				if (wrapper.classList.contains('open')) {
+					closeMenu();
+				} else {
+					openMenu();
+				}
+			});
+
+			trigger.addEventListener('keydown', (e) => {
+				if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					if (!wrapper.classList.contains('open')) {
+						openMenu();
+						const selOpt = menu.querySelector('.custom-select-option.selected') || menu.querySelector('.custom-select-option');
+						if (selOpt) selOpt.focus();
+					} else {
+						closeMenu();
+					}
+				} else if (e.key === 'Escape') {
+					closeMenu();
+				}
+			});
+
+			wrapper.appendChild(trigger);
+			wrapper.appendChild(menu);
+			select.parentNode.insertBefore(wrapper, select.nextSibling);
+
+			rebuildOptions();
+
+			wrapper._syncUI = syncUI;
+			wrapper._rebuild = rebuildOptions;
+		}
+
+		function closeAllCustomSelects() {
+			document.querySelectorAll('.custom-select-wrapper.open').forEach(w => {
+				w.classList.remove('open');
+				const trg = w.querySelector('.custom-select-trigger');
+				if (trg) trg.setAttribute('aria-expanded', 'false');
+			});
+		}
+
+		document.addEventListener('click', () => {
+			closeAllCustomSelects();
+		});
+
+		function syncAllCustomSelects() {
+			document.querySelectorAll('.custom-select-wrapper').forEach(w => {
+				if (w._syncUI) w._syncUI();
+			});
+		}
+
+		function initCustomSelects() {
+			setupCustomSelect('urlMode', { inline: true });
+			setupCustomSelect('liveSpeedLimit', { inline: true, compact: true });
+			setupCustomSelect('prefPowerAction');
+			setupCustomSelect('prefConflictMode');
+			setupCustomSelect('prefSpeedLimit');
+			setupCustomSelect('prefParallelConns');
+			setupCustomSelect('prefBufferSize');
+			setupCustomSelect('prefTheme');
+		}
+
+		async function initApp() {
+			if (window.AndroidBridge) {
+				systemOS = 'android';
+				applyPlatformSettingsVisibility(true);
+			}
+			initCustomSelects();
+			await loadPrefs();
+			syncAllCustomSelects();
+			drawSpeedSparkline();
+			const configuredLimit = parseInt(document.getElementById('liveSpeedLimit').value, 10) || 0;
+			if (configuredLimit > 0) {
+				setLiveSpeedLimit(configuredLimit);
+			}
+			refreshQueue();
+			try {
+				const res = await fetch('/api/defaults');
+				const data = await res.json();
+				systemDefaultDest = data.default_dest;
+				if (data.log_path) {
+					activeLogPath = data.log_path;
+					const prefLogEl = document.getElementById('prefLogPath');
+					if (prefLogEl) prefLogEl.value = data.log_path;
+				}
+				if (data.os) systemOS = data.os;
+				const isAndroid = systemOS === 'android' || Boolean(data.is_android);
+				applyPlatformSettingsVisibility(isAndroid);
+				if (data.arch) systemArch = data.arch;
+				if (data.version) directcrateVersion = data.version;
+				if (!document.getElementById('prefDefaultDest').value) {
+					document.getElementById('prefDefaultDest').value = systemDefaultDest;
+				}
+				if (!document.getElementById('dest').value) {
+					document.getElementById('dest').value = systemDefaultDest;
+				}
+				if (data.lan_urls && data.lan_urls.length > 0) {
+					const c = document.getElementById('lanUrlsContainer');
+					const l = document.getElementById('lanUrlsList');
+					if (c && l) {
+						l.innerHTML = '';
+						data.lan_urls.forEach(u => {
+							const item = document.createElement('div');
+							item.style.cssText = 'padding: 4px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-family: monospace; font-size: 0.78rem; color: var(--accent); user-select: all;';
+							item.textContent = u;
+							l.appendChild(item);
+						});
+						c.style.display = 'block';
+					}
+				}
+			} catch (e) {}
+		}
+
+		async function pasteURL() {
+			let text = '';
+			if (window.AndroidBridge && typeof window.AndroidBridge.readClipboard === 'function') {
+				try {
+					text = window.AndroidBridge.readClipboard() || '';
+				} catch (e) {
+					console.warn('AndroidBridge.readClipboard failed:', e);
+				}
+			}
+
+			if (!text && navigator.clipboard && navigator.clipboard.readText) {
+				try {
+					text = await navigator.clipboard.readText() || '';
+				} catch (e) {
+					console.warn('navigator.clipboard.readText failed:', e);
+				}
+			}
+
+			const clean = (text || '').trim();
+			if (!clean) {
+				showToast("Clipboard is empty", "info");
+				return;
+			}
+
+			const mode = document.getElementById('urlMode').value;
+			if (mode === 'multipart') {
+				const multiEl = document.getElementById('urlMulti');
+				if (multiEl.value.trim()) {
+					multiEl.value += '\n' + clean;
+				} else {
+					multiEl.value = clean;
+				}
+				updatePartBadge();
+				multiEl.dispatchEvent(new Event('input', { bubbles: true }));
+				multiEl.focus();
+			} else {
+				if (clean.includes('\n')) {
+					document.getElementById('urlMode').value = 'multipart';
+					toggleUrlMode();
+					const multiEl = document.getElementById('urlMulti');
+					multiEl.value = clean;
+					updatePartBadge();
+					multiEl.dispatchEvent(new Event('input', { bubbles: true }));
+					multiEl.focus();
+				} else {
+					const singleEl = document.getElementById('urlSingle');
+					singleEl.value = clean;
+					handleSingleInput(clean);
+					singleEl.dispatchEvent(new Event('input', { bubbles: true }));
+					singleEl.focus();
+				}
+			}
+			showToast("Pasted link from clipboard", "info");
+		}
+
+		function clearURL() {
+			document.getElementById('urlSingle').value = '';
+			document.getElementById('urlMulti').value = '';
+			document.getElementById('partBadge').textContent = '';
+			if (document.getElementById('hdrAuth')) document.getElementById('hdrAuth').value = '';
+			if (document.getElementById('hdrCookie')) document.getElementById('hdrCookie').value = '';
+			if (document.getElementById('hdrReferer')) document.getElementById('hdrReferer').value = '';
+			document.getElementById('inspectPanel').classList.remove('active');
+			document.getElementById('fileTreeBox').classList.remove('active');
+			inspectedFiles = [];
+			const mode = document.getElementById('urlMode').value;
+			const el = mode === 'multipart' ? document.getElementById('urlMulti') : document.getElementById('urlSingle');
+			el.dispatchEvent(new Event('input', { bubbles: true }));
+			el.focus();
+		}
+
+		function formatBytes(bytes) {
+			if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+			if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+			if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+			return bytes + ' B';
+		}
+
+		function renderFileTree(files) {
+			const box = document.getElementById('fileTreeBox');
+			const list = document.getElementById('fileTreeList');
+			if (!files || files.length === 0) {
+				box.classList.remove('active');
+				inspectedFiles = [];
+				return;
+			}
+			inspectedFiles = files;
+			list.innerHTML = '';
+			files.forEach((f, idx) => {
+				const row = document.createElement('label');
+				row.className = 'file-tree-row';
+				row.innerHTML =
+					'<span class="file-tree-name">' +
+					'<input type="checkbox" class="file-chk" data-idx="' + idx + '" checked onchange="updateSelectedStats()">' +
+					'<span title="' + f.path + '">' + f.path + '</span>' +
+					'</span>' +
+					'<span class="file-tree-sz">' + formatBytes(f.size) + '</span>';
+				list.appendChild(row);
+			});
+			box.classList.add('active');
+			updateSelectedStats();
+		}
+
+		function toggleAllFiles(checked) {
+			document.querySelectorAll('.file-chk').forEach(cb => cb.checked = checked);
+			updateSelectedStats();
+		}
+
+		function updateSelectedStats() {
+			const checks = document.querySelectorAll('.file-chk');
+			let selCount = 0;
+			let selBytes = 0;
+			checks.forEach(cb => {
+				if (cb.checked) {
+					selCount++;
+					const idx = parseInt(cb.getAttribute('data-idx'), 10);
+					if (inspectedFiles[idx]) selBytes += inspectedFiles[idx].size;
+				}
+			});
+			document.getElementById('selectedStats').textContent = selCount + ' / ' + inspectedFiles.length + ' files (' + formatBytes(selBytes) + ')';
+		}
+
+		function getSelectedFileList() {
+			if (inspectedFiles.length === 0) return [];
+			const checks = document.querySelectorAll('.file-chk');
+			const selected = [];
+			checks.forEach(cb => {
+				if (cb.checked) {
+					const idx = parseInt(cb.getAttribute('data-idx'), 10);
+					if (inspectedFiles[idx]) selected.push(inspectedFiles[idx].path);
+				}
+			});
+			// If all files remain selected, return empty list to avoid filtering overhead
+			if (selected.length === inspectedFiles.length) return [];
+			return selected;
+		}
+
+		function formatDuration(sec) {
+			const s = Math.floor(sec);
+			const h = Math.floor(s / 3600);
+			const m = Math.floor((s % 3600) / 60);
+			const rem = s % 60;
+			if (h > 0) return h + 'h ' + m + 'm ' + rem + 's';
+			if (m > 0) return m + 'm ' + rem + 's';
+			return rem + 's';
+		}
+
+		async function inspectURL() {
+			const url = getActiveURLValue();
+			const dest = document.getElementById('dest').value.trim() || systemDefaultDest;
+			if (!url) {
+				showToast("Enter an archive URL first", "info");
+				return;
+			}
+
+			const btn = document.getElementById('inspectBtn');
+			const btnM = document.getElementById('inspectBtnMulti');
+			btn.disabled = true; btnM.disabled = true;
+			btn.textContent = 'Checking...'; btnM.textContent = 'Checking...';
+
+			try {
+				const res = await fetch('/api/inspect', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({url, dest, headers: getCustomHeaders()})
+				});
+				if (!res.ok) {
+					showToast('Inspection error: ' + await res.text(), 'error');
+					return;
+				}
+				const data = await res.json();
+				document.getElementById('inspFormat').textContent = data.format + ' Archive';
+				document.getElementById('inspDownload').textContent = data.archive_size_gb.toFixed(2) + ' GB';
+				document.getElementById('inspUnpacked').textContent = data.is_exact
+					? data.exact_unpacked_gb.toFixed(2) + ' GB (Exact)'
+					: '~' + data.est_unpacked_gb.toFixed(2) + ' GB (Est.)';
+
+				const safetyEl = document.getElementById('inspSafety');
+				if (data.safe_to_extract) {
+					safetyEl.textContent = 'Storage OK (' + data.free_disk_gb.toFixed(1) + ' GB free)';
+					safetyEl.style.color = 'var(--success)';
+				} else {
+					safetyEl.textContent = 'Low Storage (' + data.free_disk_gb.toFixed(1) + ' GB free)';
+					safetyEl.style.color = 'var(--danger)';
+				}
+				document.getElementById('inspNote').textContent = data.note;
+				renderFileTree(data.files || []);
+				document.getElementById('inspectPanel').classList.add('active');
+			} catch (e) {
+				showToast('Inspection failed: ' + e, 'error');
+			} finally {
+				btn.disabled = false; btnM.disabled = false;
+				btn.textContent = 'Inspect'; btnM.textContent = 'Inspect';
+			}
+		}
+
+		let pendingState = null;
+		let uiRafId = null;
+
+		function scheduleUIUpdate(data) {
+			pendingState = data;
+			if (!uiRafId) {
+				uiRafId = requestAnimationFrame(() => {
+					uiRafId = null;
+					if (pendingState) {
+						applyStateUpdate(pendingState);
+						pendingState = null;
+					}
+				});
+			}
+		}
+
+		function applyStateUpdate(data) {
+			const pct = (typeof data.percent === 'number') ? data.percent : 0;
+			const downloadedMb = (typeof data.downloaded_mb === 'number') ? data.downloaded_mb : 0;
+			const totalMb = (typeof data.total_mb === 'number') ? data.total_mb : 0;
+			const speedMbs = (typeof data.speed_mbs === 'number') ? data.speed_mbs : 0;
+
+			const pctEl = document.getElementById('percentVal');
+			if (pctEl) {
+				if (data.has_content_len || data.status === 'completed') {
+					pctEl.textContent = pct.toFixed(1) + '%';
+				} else if (data.status === 'running') {
+					pctEl.textContent = 'Streaming...';
+				} else {
+					pctEl.textContent = '0.0%';
+				}
+			}
+
+			if (data.has_content_len || data.status === 'completed') {
+				document.getElementById('bar').style.width = pct.toFixed(1) + '%';
+				document.getElementById('payload').textContent = downloadedMb.toFixed(1) + ' / ' + totalMb.toFixed(1) + ' MB';
+			} else {
+				document.getElementById('bar').style.width = data.status === 'running' ? '100%' : '0%';
+				document.getElementById('payload').textContent = downloadedMb.toFixed(1) + ' MB';
+			}
+
+			const pill = document.getElementById('streamHealthPill');
+			if (pill) {
+				let savedStr = '0.0 MB';
+				const savedMb = downloadedMb;
+				if (savedMb >= 1024) {
+					savedStr = (savedMb / 1024).toFixed(1) + ' GB';
+				} else if (savedMb > 0) {
+					savedStr = savedMb.toFixed(0) + ' MB';
+				} else if (data.uncompressed_gb > 0) {
+					savedStr = data.uncompressed_gb.toFixed(1) + ' GB';
+				}
+				const streams = data.active_streams || 4;
+				const retries = data.retry_count || 0;
+				pill.textContent = `Saved ~${savedStr} temp storage • ${streams} streams • ${retries} retries`;
+			}
+
+			document.getElementById('speed').textContent = speedMbs.toFixed(1) + ' MB/s';
+			document.getElementById('peakSpeedLabel').textContent = 'Peak: ' + (data.peak_speed_mbs || 0).toFixed(1) + ' MB/s';
+			document.getElementById('eta').textContent = data.eta || '--:--';
+
+			if (typeof data.mem_mb === 'number' && data.mem_mb > 0) {
+				const ramEl = document.getElementById('appRam');
+				if (ramEl) ramEl.textContent = Math.round(data.mem_mb) + ' MB';
+			}
+
+			let tempC = data.temp_c || 0;
+			let thermStatus = data.thermal_status || '';
+			if (tempC <= 0 && window.AndroidBridge && typeof window.AndroidBridge.getDeviceThermals === 'function') {
+				try {
+					const thermJson = JSON.parse(window.AndroidBridge.getDeviceThermals());
+					if (thermJson && thermJson.temp_c > 0) {
+						tempC = thermJson.temp_c;
+						thermStatus = thermJson.thermal_status || 'normal';
+					}
+				} catch (e) {}
+			}
+
+			const metricTemp = document.getElementById('metricTemp');
+			const devTemp = document.getElementById('deviceTemp');
+			if (metricTemp && devTemp) {
+				if (tempC > 0) {
+					const statusText = thermStatus ? (thermStatus.charAt(0).toUpperCase() + thermStatus.slice(1)) : (tempC >= 45 ? 'Hot' : (tempC >= 41 ? 'Warm' : 'Normal'));
+					const colorClass = (thermStatus === 'hot' || tempC >= 45) ? 'temp-hot' : ((thermStatus === 'warm' || tempC >= 41) ? 'temp-warm' : 'temp-normal');
+					devTemp.innerHTML = `<span class="${colorClass}">${tempC.toFixed(1)}°C • ${statusText}</span>`;
+				} else {
+					devTemp.innerHTML = `<span style="color: var(--text-dim);">--</span>`;
+				}
+			}
+
+			const curCap = parseInt(document.getElementById('liveSpeedLimit').value, 10) || 0;
+			const thermalBanner = document.getElementById('thermalQuickBanner');
+			if (thermalBanner) {
+				const isWarming = (tempC >= 42 || thermStatus === 'warm' || thermStatus === 'hot');
+				if (isWarming && curCap === 0 && !thermalBannerDismissed) {
+					thermalBanner.style.display = 'flex';
+				} else {
+					if (tempC > 0 && tempC < 41 && thermStatus !== 'warm' && thermStatus !== 'hot') {
+						thermalBannerDismissed = false;
+					}
+					thermalBanner.style.display = 'none';
+				}
+			}
+
+			const isRunning = data.status === 'running';
+			if (isRunning) {
+				speedHistory.push(data.speed_mbs || 0);
+				if (speedHistory.length > 60) speedHistory.shift();
+				drawSpeedSparkline();
+
+				if (!thermalModalShownThisSession && (tempC >= 43.0 || thermStatus === 'hot')) {
+					thermalModalShownThisSession = true;
+					const alertModal = document.getElementById('thermalAlertModal');
+					const alertTemp = document.getElementById('thermalAlertTemp');
+					if (alertTemp && tempC > 0) {
+						alertTemp.textContent = tempC.toFixed(1) + '°C';
+					}
+					if (alertModal) {
+						alertModal.classList.add('open');
+					}
+					if (window.AndroidBridge && typeof window.AndroidBridge.notifyThermalWarning === 'function') {
+						try {
+							window.AndroidBridge.notifyThermalWarning(tempC, 'Device temperature reached ' + (tempC > 0 ? tempC.toFixed(1) + '°C' : 'warning threshold') + ' under high-speed stream.');
+						} catch (e) {}
+					}
+				}
+			}
+
+			if (data.status === 'idle' || data.status === 'completed' || data.status === 'error') {
+				thermalModalShownThisSession = false;
+				dismissThermalAlertModal(false);
+			}
+
+			let countLabel = data.extracted_files + ' files';
+			if (data.skipped_files > 0) {
+				countLabel += ' (' + data.skipped_files + ' skipped)';
+			}
+			document.getElementById('filesCount').textContent = countLabel;
+
+			if (data.free_disk_gb > 0) {
+				document.getElementById('storage').textContent = data.free_disk_gb.toFixed(1) + ' GB';
+			}
+
+			const displayMsg = translatePlainErrorMessage(data.message);
+			const statusMsgEl = document.getElementById('statusMsg');
+			if (statusMsgEl) {
+				statusMsgEl.textContent = displayMsg;
+				if (data.status === 'error') {
+					statusMsgEl.style.color = 'var(--danger)';
+				} else if (data.status === 'needs_disk' || data.status === 'needs_url') {
+					statusMsgEl.style.color = '#f59e0b';
+				} else {
+					statusMsgEl.style.color = '';
+				}
+			}
+			document.getElementById('curFile').textContent = data.current_file || '-';
+
+			isExtractionActive = isRunning || data.status === 'needs_password' || data.status === 'needs_url' || data.status === 'needs_disk';
+			document.getElementById('startBtn').disabled = isRunning || data.status === 'needs_url' || data.status === 'needs_disk';
+			document.getElementById('cancelBtn').disabled = !(isRunning || data.status === 'needs_url' || data.status === 'needs_disk');
+
+			// Throttled live Android notification progress bar sync (~1 update per second)
+			if (window.AndroidBridge && typeof window.AndroidBridge.updateNotificationProgress === 'function') {
+				const now = Date.now();
+				const isActive = Boolean(isExtractionActive);
+				const statusChanged = (lastNotificationActive !== isActive);
+				if (statusChanged || (now - lastNotificationUpdate >= 1000)) {
+					lastNotificationUpdate = now;
+					lastNotificationActive = isActive;
+					const filename = (data.current_file && data.current_file !== '-') ? data.current_file : (data.final_dest ? data.final_dest.split('/').pop().split('\\').pop() : 'DirectCrate');
+					const percent = Math.round(data.percent || 0);
+					const speedText = (data.speed_mbs ? data.speed_mbs.toFixed(1) + ' MB/s' : '0.0 MB/s');
+					const etaText = data.eta || '--:--';
+					try {
+						window.AndroidBridge.updateNotificationProgress(filename, percent, speedText, etaText, isActive);
+					} catch (e) {}
+				}
+			}
+
+			if (data.is_android !== undefined) {
+				applyPlatformSettingsVisibility(Boolean(data.is_android));
+			}
+
+			if (typeof data.speed_limit_mbs === 'number') {
+				const limitStr = String(data.speed_limit_mbs);
+				if (document.getElementById('liveSpeedLimit').value !== limitStr) {
+					document.getElementById('liveSpeedLimit').value = limitStr;
+					document.getElementById('prefSpeedLimit').value = limitStr;
+					syncAllCustomSelects();
+				}
+			}
+
+			if (Array.isArray(data.queue)) {
+				renderQueue(data.queue);
+			}
+
+			if (data.status === 'needs_password') {
+				document.getElementById('passPromptMsg').textContent = data.message;
+				document.getElementById('archivePassword').value = '';
+				document.getElementById('passwordModal').classList.add('open');
+				setTimeout(() => document.getElementById('archivePassword').focus(), 100);
+			}
+
+			const resumeModal = document.getElementById('resumeUrlModal');
+			if (data.status === 'needs_url') {
+				document.getElementById('resumeUrlMsg').textContent = translatePlainErrorMessage(data.message) || "Download link expired or blocked by host. Refresh the link and click Retry to resume.";
+				if (!resumeModal.classList.contains('open')) {
+					document.getElementById('refreshedUrlInput').value = '';
+					resumeModal.classList.add('open');
+					setTimeout(() => document.getElementById('refreshedUrlInput').focus(), 100);
+				}
+			} else if (resumeModal.classList.contains('open')) {
+				resumeModal.classList.remove('open');
+			}
+
+			const completePanel = document.getElementById('completePanel');
+			if (data.status === 'completed') {
+				lastCompletedPath = data.final_dest;
+				document.getElementById('sumFiles').textContent = data.extracted_files;
+				document.getElementById('sumTime').textContent = formatDuration(data.time_taken_sec);
+				document.getElementById('sumDisk').textContent = data.uncompressed_gb.toFixed(2) + ' GB';
+				document.getElementById('sumRate').textContent = data.average_speed_mbs.toFixed(1) + ' MB/s avg';
+				document.getElementById('sumIntegrity').textContent = data.integrity_status || 'Skipped';
+				document.getElementById('sumPath').textContent = data.final_dest;
+
+				const exes = data.detected_exes || [];
+				const exeSection = document.getElementById('exeSection');
+				const exeSelect = document.getElementById('exeSelect');
+				const addSteamBtn = document.getElementById('addSteamBtn');
+
+				if (exes.length > 0 && systemOS !== 'android') {
+					exeSelect.innerHTML = '';
+					exes.forEach(p => {
+						const opt = document.createElement('option');
+						opt.value = p;
+						opt.textContent = p.replace(data.final_dest + '/', '').replace(data.final_dest + '\\', '');
+						exeSelect.appendChild(opt);
+					});
+					exeSection.style.display = 'block';
+					addSteamBtn.style.display = 'block';
+					addSteamBtn.disabled = false;
+					addSteamBtn.textContent = 'Add to Steam';
+				} else {
+					exeSection.style.display = 'none';
+					addSteamBtn.style.display = 'none';
+				}
+
+				completePanel.classList.add('active');
+			} else if (isRunning) {
+				completePanel.classList.remove('active');
+			}
+		}
+
+		const evtSource = new EventSource('/events');
+		evtSource.onmessage = (e) => {
+			try {
+				const data = JSON.parse(e.data);
+				scheduleUIUpdate(data);
+			} catch (err) {
+				console.error("SSE parse error:", err);
+			}
+		};
+
+		function getCustomHeaders() {
+			const headers = {};
+			const auth = document.getElementById('hdrAuth') ? document.getElementById('hdrAuth').value.trim() : '';
+			const cookie = document.getElementById('hdrCookie') ? document.getElementById('hdrCookie').value.trim() : '';
+			const referer = document.getElementById('hdrReferer') ? document.getElementById('hdrReferer').value.trim() : '';
+			if (auth) headers['Authorization'] = auth;
+			if (cookie) headers['Cookie'] = cookie;
+			if (referer) headers['Referer'] = referer;
+			return headers;
+		}
+
+		function buildTaskPayload(conflictPolicy) {
+			const url = getActiveURLValue();
+			const dest = document.getElementById('dest').value.trim() || systemDefaultDest;
+			const customFolder = document.getElementById('customFolder').value.trim();
+			return {
+				url,
+				dest,
+				headers: getCustomHeaders(),
+				custom_folder: customFolder,
+				conflict_policy: conflictPolicy || 'merge',
+				selected_files: getSelectedFileList(),
+				auto_subfolder: document.getElementById('prefAutoSubfolder') ? document.getElementById('prefAutoSubfolder').checked : true,
+				flatten_single_root: document.getElementById('prefFlattenSingleRoot') ? document.getElementById('prefFlattenSingleRoot').checked : true,
+				play_sound: document.getElementById('prefPlaySound') ? document.getElementById('prefPlaySound').checked : true,
+				prevent_idle: document.getElementById('prefPreventIdle') ? document.getElementById('prefPreventIdle').checked : true,
+				power_action: document.getElementById('prefPowerAction') ? document.getElementById('prefPowerAction').value || 'none' : 'none',
+				speed_limit_mbs: parseInt(document.getElementById('liveSpeedLimit').value, 10) || 0,
+				parallel_conns: parseInt(document.getElementById('prefParallelConns').value, 10) || 4,
+				buffer_size_mb: parseInt(document.getElementById('prefBufferSize').value, 10) || 4,
+				exclude_patterns: document.getElementById('prefExcludePatterns') ? document.getElementById('prefExcludePatterns').value.trim() : '',
+				add_to_steam: (systemOS !== 'android') && Boolean(document.getElementById('prefAddSteam') && document.getElementById('prefAddSteam').checked),
+				password: ''
+			};
+		}
+
+		async function initiateStartTask() {
+			thermalModalShownThisSession = false;
+			const url = getActiveURLValue();
+			const dest = document.getElementById('dest').value.trim() || systemDefaultDest;
+			const customFolder = document.getElementById('customFolder').value.trim();
+
+			if (!url && currentQueue.length > 0) {
+				await startTask('merge');
+				return;
+			}
+			if (!url) {
+				showToast('Enter an archive URL first.', 'error');
+				return;
+			}
+
+			if (window.AndroidBridge && typeof window.AndroidBridge.hasStoragePermission === 'function') {
+				if (!window.AndroidBridge.hasStoragePermission()) {
+					const allowed = await showConfirmModal({
+						title: 'Storage Permission Required',
+						message: 'DirectCrate needs All Files Access to unpack and save files directly into your public Download or SD card folder. Grant permission now?',
+						okText: 'Grant Permission',
+						cancelText: 'Cancel'
+					});
+					if (allowed) {
+						window.AndroidBridge.requestStoragePermission();
+					}
+					return;
+				}
+			}
+
+			const conflictMode = document.getElementById('prefConflictMode') ? document.getElementById('prefConflictMode').value : 'ask';
+			if (conflictMode && conflictMode !== 'ask') {
+				await startTask(conflictMode);
+				return;
+			}
+
+			// Check for existing non-empty destination folder conflict
+			try {
+				const chkRes = await fetch('/api/check-folder', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({url, dest, custom_folder: customFolder})
+				});
+				if (chkRes.ok) {
+					const chkData = await chkRes.json();
+					if (chkData.exists) {
+						document.getElementById('conflictMsg').textContent =
+							'Target folder "' + chkData.target_path + '" already exists with ' + chkData.file_count + ' item(s). Choose how to handle existing files:';
+						document.getElementById('conflictModal').classList.add('open');
+						return;
+					}
+				}
+			} catch (e) {}
+
+			await startTask('merge');
+		}
+
+		function closeConflictModal() {
+			document.getElementById('conflictModal').classList.remove('open');
+		}
+
+		async function resolveConflictChoice(policy) {
+			closeConflictModal();
+			await startTask(policy);
+		}
+
+		async function startTask(conflictPolicy) {
+			speedHistory = new Array(60).fill(0);
+			drawSpeedSparkline();
+
+			await fetch('/start', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify(buildTaskPayload(conflictPolicy))
+			});
+		}
+
+		async function addToQueue() {
+			const url = getActiveURLValue();
+			if (!url) {
+				showToast('Enter an archive URL first.', 'error');
+				return;
+			}
+			if (window.AndroidBridge && typeof window.AndroidBridge.hasStoragePermission === 'function') {
+				if (!window.AndroidBridge.hasStoragePermission()) {
+					const allowed = await showConfirmModal({
+						title: 'Storage Permission Required',
+						message: 'DirectCrate needs All Files Access to unpack and save files directly into your public Download or SD card folder. Grant permission now?',
+						okText: 'Grant Permission',
+						cancelText: 'Cancel'
+					});
+					if (allowed) {
+						window.AndroidBridge.requestStoragePermission();
+					}
+					return;
+				}
+			}
+			const res = await fetch('/api/queue', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify(buildTaskPayload('merge'))
+			});
+			if (res.ok) {
+				clearURL();
+				document.getElementById('customFolder').value = '';
+				refreshQueue();
+			} else {
+				showToast('Queue error: ' + await res.text(), 'error');
+			}
+		}
+
+		async function removeQueueItem(id) {
+			const res = await fetch('/api/queue/' + encodeURIComponent(id), {
+				method: 'DELETE'
+			});
+			if (res.ok) {
+				renderQueue(await res.json());
+			}
+		}
+
+		async function submitRefreshedUrl() {
+			const url = document.getElementById('refreshedUrlInput').value.trim();
+			if (!url) return;
+			const res = await fetch('/api/resume-url', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({url})
+			});
+			if (res.ok) {
+				closeResumeUrlModal();
+			} else {
+				showToast('Resume error: ' + await res.text(), 'error');
+			}
+		}
+
+		function closeResumeUrlModal() {
+			document.getElementById('resumeUrlModal').classList.remove('open');
+		}
+
+		async function submitPassword() {
+			const pass = document.getElementById('archivePassword').value;
+			if (!pass) return;
+			closePasswordModal();
+			await fetch('/api/unlock', {
+				method: 'POST',
+				headers: {'Content-Type': 'application/json'},
+				body: JSON.stringify({password: pass})
+			});
+		}
+
+		function closePasswordModal() {
+			document.getElementById('passwordModal').classList.remove('open');
+		}
+
+		async function cancelTask() {
+			const confirmed = await showConfirmModal({
+				title: 'Abort Extraction?',
+				message: 'This will abort your download. Any partially extracted files from this session will be deleted immediately.',
+				okText: 'Confirm Abort',
+				danger: true
+			});
+			if (confirmed) {
+				isExtractionActive = false;
+				await fetch('/cancel', {method: 'POST'});
+			}
+		}
+
+		function closeAbortModal() {
+			document.getElementById('abortModal').classList.remove('open');
+		}
+
+		async function confirmAbortTask() {
+			closeAbortModal();
+			isExtractionActive = false;
+			await fetch('/cancel', {method: 'POST'});
+		}
+
+		async function openPathInOS(folderPath) {
+			if (!folderPath) return;
+			if (window.AndroidBridge && typeof window.AndroidBridge.openFolder === 'function') {
+				try {
+					if (window.AndroidBridge.openFolder(folderPath)) {
+						return;
+					}
+				} catch (e) {
+					console.warn('AndroidBridge.openFolder failed:', e);
+				}
+			}
+			try {
+				await fetch('/api/open-folder', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({path: folderPath})
+				});
+			} catch (e) {
+				console.warn('Failed to open folder:', e);
+			}
+		}
+
+		async function openTargetFolder() {
+			await openPathInOS(lastCompletedPath);
+		}
+
+		async function addToSteam() {
+			if (systemOS === 'android') return;
+			const exePath = document.getElementById('exeSelect').value;
+			if (!exePath) return;
+
+			const btn = document.getElementById('addSteamBtn');
+			btn.disabled = true;
+			btn.textContent = 'Adding & Fetching Art...';
+
+			try {
+				const res = await fetch('/api/add-steam', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: JSON.stringify({exe_path: exePath, app_name: ''})
+				});
+				if (!res.ok) {
+					showToast('Steam error: ' + await res.text(), 'error');
+					btn.disabled = false;
+					btn.textContent = 'Add to Steam';
+					return;
+				}
+				const data = await res.json();
+				btn.textContent = 'Added to Steam';
+				showToast(data.message, 'success');
+			} catch (e) {
+				showToast('Error: ' + e, 'error');
+				btn.disabled = false;
+			}
+		}
+
+		function openSettings() {
+			document.getElementById('settingsModal').classList.add('open');
+		}
+
+		function closeSettings() {
+			savePrefs();
+			document.getElementById('settingsModal').classList.remove('open');
+		}
+
+		function switchTab(tabId, btnEl) {
+			document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+			document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+			btnEl.classList.add('active');
+			document.getElementById('tab-' + tabId).classList.add('active');
+		}
+
+		window.onAndroidDirectoryPicked = function(pickedPath) {
+			if (!pickedPath) return;
+			if (pickerTarget === 'pref') {
+				const destInput = document.getElementById('dest');
+				const prevDefault = document.getElementById('prefDefaultDest').value.trim() || systemDefaultDest;
+				const currentDest = destInput ? destInput.value.trim() : '';
+				document.getElementById('prefDefaultDest').value = pickedPath;
+				savePrefs();
+				if (destInput && (!currentDest || currentDest === prevDefault)) {
+					destInput.value = pickedPath;
+				}
+			} else {
+				const destInput = document.getElementById('dest');
+				if (destInput) destInput.value = pickedPath;
+			}
+			showToast('Selected directory: ' + pickedPath, 'info');
+		};
+
+		async function openPicker(target = 'main') {
+			pickerTarget = target === 'pref' ? 'pref' : 'main';
+
+			if (window.AndroidBridge && typeof window.AndroidBridge.pickDirectory === 'function') {
+				window.AndroidBridge.pickDirectory();
+				return;
+			}
+
+			document.getElementById('pickerModal').classList.add('open');
+			const destInput = pickerTarget === 'pref'
+				? document.getElementById('prefDefaultDest')
+				: document.getElementById('dest');
+			const cur = (destInput ? destInput.value.trim() : '') || systemDefaultDest;
+			const pathEl = document.getElementById('modalCurrentPath');
+			if (pathEl) pathEl.textContent = cur || 'Loading host directory...';
+			loadDir(cur);
+		}
+
+		function closePicker() {
+			document.getElementById('pickerModal').classList.remove('open');
+		}
+
+		async function loadDir(path = '') {
+			const pathEl = document.getElementById('modalCurrentPath');
+			const listEl = document.getElementById('dirList');
+			const shortcutsEl = document.getElementById('pickerShortcuts');
+			if (pathEl) pathEl.textContent = path || 'Loading host directory...';
+			if (listEl) listEl.innerHTML = '<div style="padding: 16px; color: var(--text-dim); text-align: center;">Loading folders...</div>';
+
+			try {
+				let res = await fetch('/api/browse?path=' + encodeURIComponent(path || ''));
+				if (!res.ok) {
+					// Fallback to default host home directory
+					res = await fetch('/api/browse');
+				}
+				const data = await res.json();
+				activeBrowsePath = data.current;
+				if (pathEl) pathEl.textContent = data.current;
+
+				// Render Quick Shortcuts
+				if (shortcutsEl && Array.isArray(data.shortcuts)) {
+					shortcutsEl.innerHTML = '';
+					data.shortcuts.forEach(sc => {
+						const pill = document.createElement('button');
+						pill.type = 'button';
+						pill.className = 'shortcut-pill';
+						pill.textContent = sc.name;
+						pill.title = sc.path;
+						if (sc.path === data.current) pill.classList.add('active');
+						pill.onclick = (e) => {
+							e.stopPropagation();
+							loadDir(sc.path);
+						};
+						shortcutsEl.appendChild(pill);
+					});
+					shortcutsEl.style.display = data.shortcuts.length > 0 ? 'flex' : 'none';
+				}
+
+				if (listEl) {
+					listEl.innerHTML = '';
+					const items = data.items || [];
+					if (items.length === 0) {
+						listEl.innerHTML = '<div style="padding: 20px; color: var(--text-dim); text-align: center; font-size: 0.8rem;">(No subdirectories found)</div>';
+						return;
+					}
+					items.forEach(item => {
+						const div = document.createElement('div');
+						div.className = 'dir-row';
+						const isParent = item.name === '..';
+						const iconSpan = document.createElement('span');
+						iconSpan.style.opacity = '0.8';
+						iconSpan.style.fontSize = '1rem';
+						iconSpan.textContent = isParent ? '⬆' : '📁';
+						const nameSpan = document.createElement('span');
+						nameSpan.style.fontWeight = isParent ? '500' : '400';
+						nameSpan.style.wordBreak = 'break-all';
+						nameSpan.textContent = isParent ? 'Parent Directory (..)' : item.name;
+						div.appendChild(iconSpan);
+						div.appendChild(nameSpan);
+						div.onclick = () => loadDir(item.path);
+						listEl.appendChild(div);
+					});
+				}
+			} catch (e) {
+				if (pathEl) pathEl.textContent = 'Error loading directory';
+				if (listEl) {
+					listEl.innerHTML =
+						'<div style="padding: 16px; color: var(--danger); text-align: center; font-size: 0.8rem;">' +
+						'Failed to load directory. ' +
+						'<button class="btn-sec" type="button" style="margin-top: 8px;" onclick="loadDir(\'\')">Go to Home</button>' +
+						'</div>';
+				}
+			}
+		}
+
+		async function createNewFolder() {
+			if (!activeBrowsePath) return;
+			const name = await showPromptModal({
+				title: 'Create New Folder',
+				message: 'Enter folder name to create inside:\n' + activeBrowsePath,
+				placeholder: 'New_Folder',
+				okText: 'Create Folder'
+			});
+			if (!name || !name.trim()) return;
+			const cleanName = name.trim();
+			try {
+				const res = await fetch('/api/browse', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ parent: activeBrowsePath, name: cleanName })
+				});
+				if (!res.ok) {
+					const errText = await res.text();
+					throw new Error(errText || ('HTTP ' + res.status));
+				}
+				const data = await res.json();
+				showToast('Created folder: ' + cleanName, 'success');
+				loadDir(data.path || (activeBrowsePath + '/' + cleanName));
+			} catch (e) {
+				showToast('Failed to create folder: ' + e.message, 'error');
+			}
+		}
+
+		function chooseCurrentDir() {
+			if (activeBrowsePath) {
+				if (pickerTarget === 'pref') {
+					const prevDefault = document.getElementById('prefDefaultDest').value.trim() || systemDefaultDest;
+					const destInput = document.getElementById('dest');
+					const currentDest = destInput.value.trim();
+					document.getElementById('prefDefaultDest').value = activeBrowsePath;
+					savePrefs();
+					if (!currentDest || currentDest === prevDefault) {
+						destInput.value = activeBrowsePath;
+					}
+				} else {
+					document.getElementById('dest').value = activeBrowsePath;
+				}
+				showToast('Selected destination: ' + activeBrowsePath, 'info');
+			}
+			closePicker();
+		}
+
+		async function openHistory() {
+			document.getElementById('historyModal').classList.add('open');
+			const listEl = document.getElementById('historyList');
+			listEl.innerHTML = '<div style="color: var(--text-dim);">Loading...</div>';
+			try {
+				const res = await fetch('/api/history');
+				const items = await res.json();
+				if (!items || items.length === 0) {
+					listEl.innerHTML = '<div style="color: var(--text-dim);">No history recorded yet.</div>';
+					return;
+				}
+				listEl.innerHTML = '';
+				items.forEach(item => {
+					const div = document.createElement('div');
+					div.className = 'hist-card';
+					div.innerHTML =
+						'<div style="display:flex; justify-content:space-between; font-weight:600; color:var(--text);">' +
+						'<span>' + item.folder_name + '</span>' +
+						'<span>' + item.uncompressed_gb.toFixed(2) + ' GB</span>' +
+						'</div>' +
+						'<div style="color:var(--text-dim); font-size:0.75rem; margin-top:4px;">' +
+						item.timestamp + ' · ' + item.extracted_files + ' files · ' + item.average_speed_mbs.toFixed(1) + ' MB/s' +
+						'</div>' +
+						'<div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; gap:8px;">' +
+						'<div style="color:var(--text-muted); font-size:0.75rem; word-break:break-all; flex:1;">' + item.final_dest + '</div>' +
+						'<button class="btn-sec" type="button" style="padding: 4px 10px; font-size: 0.74rem; flex-shrink:0;">Open</button>' +
+						'</div>';
+					const openBtn = div.querySelector('button');
+					if (openBtn) {
+						openBtn.onclick = () => openPathInOS(item.final_dest);
+					}
+					listEl.appendChild(div);
+				});
+			} catch (e) {
+				listEl.innerHTML = '<div style="color: var(--danger);">Failed to load history.</div>';
+			}
+		}
+
+		function closeHistory() {
+			document.getElementById('historyModal').classList.remove('open');
+		}
+
+		function openLogsModal() {
+			document.getElementById('logsModal').classList.add('open');
+			fetchLogs();
+		}
+
+		function closeLogsModal() {
+			document.getElementById('logsModal').classList.remove('open');
+		}
+
+		async function fetchLogs() {
+			const contentEl = document.getElementById('logsContent');
+			const pathEl = document.getElementById('logsPathDisplay');
+			const noteEl = document.getElementById('logsStatusNote');
+			noteEl.textContent = 'Refreshing...';
+			try {
+				const res = await fetch('/api/logs');
+				if (!res.ok) throw new Error('HTTP ' + res.status);
+				const data = await res.json();
+				activeLogPath = data.path || activeLogPath;
+				pathEl.textContent = activeLogPath || '~/.config/directcrate/directcrate.log';
+				const prefLogEl = document.getElementById('prefLogPath');
+				if (prefLogEl && activeLogPath) prefLogEl.value = activeLogPath;
+				contentEl.textContent = data.content || '(No log entries recorded yet)';
+				contentEl.scrollTop = contentEl.scrollHeight;
+				noteEl.textContent = '';
+			} catch (e) {
+				noteEl.textContent = 'Load failed';
+				contentEl.textContent = 'Failed to fetch logs: ' + e;
+			}
+		}
+
+		async function copyBugReport() {
+			const btn = document.getElementById('copyReportBtn');
+			const logsText = document.getElementById('logsContent').textContent || '';
+			const platformStr = [systemOS, systemArch].filter(Boolean).join('/') || navigator.platform || 'Unknown';
+			const report = [
+				'### DirectCrate Diagnostic Report',
+				'- **Version:** ' + (directcrateVersion || 'v1.0.0'),
+				'- **OS / Arch:** ' + platformStr,
+				'- **Browser:** ' + navigator.userAgent,
+				'- **Timestamp:** ' + new Date().toISOString(),
+				'- **Log File:** `' + (activeLogPath || '~/.config/directcrate/directcrate.log') + '`',
+				'',
+				'<details>',
+				'<summary>Diagnostic & Crash Logs</summary>',
+				'',
+				'```text',
+				logsText,
+				'```',
+				'</details>'
+			].join('\n');
+
+			try {
+				let copied = false;
+				if (window.AndroidBridge && typeof window.AndroidBridge.writeClipboard === 'function') {
+					try {
+						copied = window.AndroidBridge.writeClipboard(report);
+					} catch (e) {
+						console.warn('AndroidBridge.writeClipboard failed:', e);
+					}
+				}
+				if (!copied) {
+					if (navigator.clipboard && navigator.clipboard.writeText) {
+						await navigator.clipboard.writeText(report);
+					} else {
+						const ta = document.createElement('textarea');
+						ta.value = report;
+						document.body.appendChild(ta);
+						ta.select();
+						document.execCommand('copy');
+						document.body.removeChild(ta);
+					}
+				}
+				const original = btn.textContent;
+				btn.textContent = 'Copied!';
+				setTimeout(() => { btn.textContent = original; }, 2000);
+			} catch (e) {
+				showToast('Failed to copy diagnostic report: ' + e, 'error');
+			}
+		}
+
+		async function clearLogs() {
+			const confirmed = await showConfirmModal({
+				title: 'Clear Logs & Diagnostics',
+				message: 'Clear directcrate.log and remove any recorded crash reports?',
+				okText: 'Clear Logs',
+				danger: true
+			});
+			if (!confirmed) return;
+			try {
+				const res = await fetch('/api/logs', { method: 'DELETE' });
+				if (!res.ok) throw new Error('HTTP ' + res.status);
+				await fetchLogs();
+				showToast('Logs cleared successfully', 'success');
+			} catch (e) {
+				showToast('Failed to clear logs: ' + e, 'error');
+			}
+		}
+
+		// Desktop Drag-and-Drop handler for URLs and .txt link files
+		const shellEl = document.getElementById('appShell');
+		shellEl.addEventListener('dragover', (e) => {
+			e.preventDefault();
+			shellEl.classList.add('drag-over');
+		});
+		shellEl.addEventListener('dragleave', () => {
+			shellEl.classList.remove('drag-over');
+		});
+		shellEl.addEventListener('drop', (e) => {
+			e.preventDefault();
+			shellEl.classList.remove('drag-over');
+
+			if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+				const file = e.dataTransfer.files[0];
+				if (file.name.toLowerCase().endsWith('.txt') || file.type === 'text/plain') {
+					const reader = new FileReader();
+					reader.onload = (ev) => {
+						if (ev.target && ev.target.result) {
+							setIncomingURLText(String(ev.target.result));
+						}
+					};
+					reader.readAsText(file);
+					return;
+				}
+			}
+
+			const droppedURI = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+			if (droppedURI) {
+				setIncomingURLText(droppedURI);
+			}
+		});
+
+		document.addEventListener('keydown', (e) => {
+			if (e.key === 'Escape') {
+				const modals = [
+					{ id: 'confirmModal', fn: () => closeConfirmModal(false) },
+					{ id: 'promptModal', fn: () => closePromptModal(null) },
+					{ id: 'thermalAlertModal', fn: () => dismissThermalAlertModal(false) },
+					{ id: 'logsModal', fn: closeLogsModal },
+					{ id: 'conflictModal', fn: closeConflictModal },
+					{ id: 'abortModal', fn: closeAbortModal },
+					{ id: 'passwordModal', fn: closePasswordModal },
+					{ id: 'resumeUrlModal', fn: closeResumeUrlModal },
+					{ id: 'pickerModal', fn: closePicker },
+					{ id: 'settingsModal', fn: closeSettings },
+					{ id: 'historyModal', fn: closeHistory }
+				];
+				for (const m of modals) {
+					const el = document.getElementById(m.id);
+					if (el && el.classList.contains('open')) {
+						e.preventDefault();
+						m.fn();
+						return;
+					}
+				}
+			}
+
+			if (e.key === 'Enter') {
+				const confirmModal = document.getElementById('confirmModal');
+				if (confirmModal && confirmModal.classList.contains('open')) {
+					e.preventDefault();
+					closeConfirmModal(true);
+					return;
+				}
+			}
+
+			if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+				const anyOpen = document.querySelector('.overlay.open');
+				const startBtn = document.getElementById('startBtn');
+				if (!anyOpen && startBtn && !startBtn.disabled) {
+					e.preventDefault();
+					initiateStartTask();
+				}
+			}
+		});
+
+		document.addEventListener('paste', (e) => {
+			const anyOpen = document.querySelector('.overlay.open');
+			if (anyOpen) return;
+
+			const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+			const activeId = document.activeElement ? document.activeElement.id : '';
+
+			if (activeId === 'urlSingle') {
+				const pasted = (e.clipboardData || window.clipboardData).getData('text');
+				if (pasted && pasted.trim().includes('\n')) {
+					e.preventDefault();
+					setIncomingURLText(pasted);
+				}
+				return;
+			}
+
+			if (activeTag !== 'input' && activeTag !== 'textarea' && activeTag !== 'select') {
+				const pasted = (e.clipboardData || window.clipboardData).getData('text');
+				if (pasted && pasted.trim()) {
+					e.preventDefault();
+					setIncomingURLText(pasted);
+				}
+			}
+		});
+
+		window.addEventListener('resize', drawSpeedSparkline);
+		initApp();
+		setTimeout(checkForUpdatesSilent, 2000);
+	</script>
+</body>
+</html>

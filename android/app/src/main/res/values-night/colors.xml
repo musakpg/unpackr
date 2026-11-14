@@ -1,0 +1,10 @@
+<resources>
+    <color name="bg">#09090b</color>
+    <color name="surface">#18181b</color>
+    <color name="primary">#fafafa</color>
+    <color name="accent">#10b981</color>
+    <color name="ic_launcher_background">#09090b</color>
+    <color name="brand_emerald">#10b981</color>
+    <color name="brand_light">#fafafa</color>
+</resources>
+

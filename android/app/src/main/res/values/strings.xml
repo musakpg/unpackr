@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">DirectCrate</string>
+    <string name="service_notification_title">DirectCrate Engine Ready</string>
+    <string name="service_notification_text">Local streaming service active</string>
+    <string name="channel_name">DirectCrate Foreground Service</string>
+    <string name="channel_description">Keeps the local streaming backend running</string>
+    <string name="action_stop">Stop / Exit</string>
+    <string name="action_abort">Abort</string>
+</resources>

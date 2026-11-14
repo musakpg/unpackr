@@ -1,0 +1,64 @@
+name: Bug Report
+description: File an issue or bug report for DirectCrate
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please provide as much detail as possible to help us troubleshoot and resolve the problem.
+  - type: input
+    id: archive_info
+    attributes:
+      label: Archive Format or Source
+      description: What type of archive failed (e.g. RAR5 multi-part, 7-Zip, ZIP, tar.zst)?
+      placeholder: e.g. Multi-part RAR5 (game.part1.rar - part4.rar)
+    validations:
+      required: true
+  - type: dropdown
+    id: os_environment
+    attributes:
+      label: Operating System / Environment
+      description: Which environment are you running DirectCrate on?
+      options:
+        - SteamOS / Steam Deck
+        - Linux Desktop / Handheld (Bazzite, ROG Ally, Legion Go)
+        - Windows 10 / 11
+        - Android (Standalone APK)
+        - Android (Termux)
+        - Other Linux / Server
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Paste archive URL into DirectCrate
+        2. Set destination directory
+        3. Click Start Unpack
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: A clear description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually occurred?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Diagnostics & Log Output
+      description: Click the **Logs** button in the top header bar (between History and Settings) and hit **Copy Report**, then paste the output here.
+      render: markdown
+g
